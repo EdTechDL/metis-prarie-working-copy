@@ -1,41 +1,78 @@
 import * as THREE from 'three';
 import { fbm, smoothstep } from './Utils.js';
 
-// Enhanced grass shader with wind and color variation
+// Enhanced grass shader with noise-based wind, alpha tips, and subsurface scattering
 const grassVertexShader = `
     varying vec2 vUv;
     varying vec3 vColor;
     varying float vWindFactor;
+    varying float vHeight;
+    varying vec3 vWorldPos;
     uniform float time;
     uniform float windSpeed;
     uniform float windStrength;
 
+    // Simplex-like noise for organic wind patterns
+    float hash(vec2 p) {
+        return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
+    }
+
+    float noise(vec2 p) {
+        vec2 i = floor(p);
+        vec2 f = fract(p);
+        f = f * f * (3.0 - 2.0 * f);
+        float a = hash(i);
+        float b = hash(i + vec2(1.0, 0.0));
+        float c = hash(i + vec2(0.0, 1.0));
+        float d = hash(i + vec2(1.0, 1.0));
+        return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
+    }
+
+    // FBM for multi-scale wind turbulence
+    float fbm(vec2 p) {
+        float value = 0.0;
+        float amplitude = 0.5;
+        for (int i = 0; i < 4; i++) {
+            value += amplitude * noise(p);
+            p *= 2.0;
+            amplitude *= 0.5;
+        }
+        return value;
+    }
+
     void main() {
         vUv = uv;
         vColor = instanceColor;
+        vHeight = position.y;
 
         vec3 pos = position;
 
         // Wind effect with gusts
         float worldX = instanceMatrix[3][0];
         float worldZ = instanceMatrix[3][2];
+        vWorldPos = vec3(worldX, pos.y, worldZ);
 
-        // Multiple wave frequencies for natural wind
-        float wave1 = sin(time * windSpeed * 2.0 + worldX * 0.3 + worldZ * 0.2);
-        float wave2 = sin(time * windSpeed * 3.5 + worldX * 0.5) * 0.5;
-        float wave3 = cos(time * windSpeed * 1.5 + worldZ * 0.4) * 0.3;
+        // Noise-based wind field (more organic than sine waves)
+        vec2 windUV = vec2(worldX * 0.05 + time * windSpeed * 0.3, worldZ * 0.05);
+        float windNoise = fbm(windUV) * 2.0 - 1.0;
 
-        // Gust effect
-        float gust = sin(time * 0.5 + worldX * 0.1) * 0.5 + 0.5;
-        gust = pow(gust, 3.0);
+        // Add directional wind component
+        float directionalWind = sin(time * windSpeed * 0.8 + worldX * 0.1) * 0.5;
 
-        float totalWind = (wave1 + wave2 + wave3) * windStrength * (1.0 + gust * 0.5);
+        // Gust effect - traveling waves of stronger wind
+        float gustPhase = time * 0.4 + worldX * 0.02;
+        float gust = pow(sin(gustPhase) * 0.5 + 0.5, 4.0);
+
+        float totalWind = (windNoise + directionalWind) * windStrength * (1.0 + gust * 0.8);
         vWindFactor = totalWind;
 
-        // Only bend from base - stronger at top
+        // Quadratic bend - stronger at top, fixed at base
         float bendFactor = pos.y * pos.y;
-        pos.x += totalWind * bendFactor * 0.3;
-        pos.z += totalWind * bendFactor * 0.15;
+        pos.x += totalWind * bendFactor * 0.4;
+        pos.z += totalWind * bendFactor * 0.2 + windNoise * bendFactor * 0.1;
+
+        // Slight vertical compression when bent
+        pos.y *= 1.0 - abs(totalWind) * bendFactor * 0.05;
 
         vec4 mvPosition = modelViewMatrix * instanceMatrix * vec4(pos, 1.0);
         gl_Position = projectionMatrix * mvPosition;
@@ -46,17 +83,39 @@ const grassFragmentShader = `
     varying vec2 vUv;
     varying vec3 vColor;
     varying float vWindFactor;
+    varying float vHeight;
+    varying vec3 vWorldPos;
+    uniform vec3 sunDirection;
+    uniform vec3 sunColor;
 
     void main() {
         // Gradient from dark base to lighter tips
-        vec3 baseColor = vColor * 0.4;
-        vec3 tipColor = vColor * 1.2;
-        vec3 color = mix(baseColor, tipColor, vUv.y);
+        vec3 baseColor = vColor * 0.35;
+        vec3 tipColor = vColor * 1.3;
+        vec3 color = mix(baseColor, tipColor, pow(vUv.y, 0.8));
 
-        // Subtle wind-based color shift (lighter when bent)
-        color += vec3(abs(vWindFactor) * 0.05);
+        // Subsurface scattering simulation - grass glows when backlit
+        float backlit = max(0.0, dot(normalize(vec3(vWorldPos.x, 0.0, vWorldPos.z)), sunDirection));
+        backlit = pow(backlit, 2.0) * 0.3;
+        color += sunColor * backlit * vUv.y;
 
-        gl_FragColor = vec4(color, 1.0);
+        // Wind-based color shift (lighter when bent, simulates light catching)
+        color += vec3(0.05, 0.08, 0.02) * abs(vWindFactor) * vUv.y;
+
+        // Subtle ambient occlusion at base
+        float ao = smoothstep(0.0, 0.3, vUv.y);
+        color *= 0.7 + ao * 0.3;
+
+        // Alpha fade at tip for softer appearance
+        float alpha = 1.0;
+        if (vUv.y > 0.85) {
+            alpha = 1.0 - smoothstep(0.85, 1.0, vUv.y);
+        }
+
+        // Discard very transparent pixels for performance
+        if (alpha < 0.1) discard;
+
+        gl_FragColor = vec4(color, alpha);
     }
 `;
 
@@ -88,6 +147,98 @@ const reedFragmentShader = `
 
     void main() {
         vec3 color = mix(vColor * 0.6, vColor, vUv.y);
+        gl_FragColor = vec4(color, 1.0);
+    }
+`;
+
+// Tree crown shader with wind sway animation
+const treeCrownVertexShader = `
+    varying vec3 vNormal;
+    varying vec3 vColor;
+    varying vec3 vWorldPos;
+    uniform float time;
+    uniform float windStrength;
+
+    // Simple noise function
+    float hash(vec2 p) {
+        return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
+    }
+
+    float noise(vec2 p) {
+        vec2 i = floor(p);
+        vec2 f = fract(p);
+        f = f * f * (3.0 - 2.0 * f);
+        float a = hash(i);
+        float b = hash(i + vec2(1.0, 0.0));
+        float c = hash(i + vec2(0.0, 1.0));
+        float d = hash(i + vec2(1.0, 1.0));
+        return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
+    }
+
+    void main() {
+        vNormal = normalMatrix * normal;
+        vColor = instanceColor;
+
+        vec3 pos = position;
+
+        // Get world position for wind variation
+        float worldX = instanceMatrix[3][0];
+        float worldZ = instanceMatrix[3][2];
+        float worldY = instanceMatrix[3][1];
+        vWorldPos = vec3(worldX, worldY + pos.y, worldZ);
+
+        // Wind effect - stronger at top of tree
+        float heightFactor = max(0.0, pos.y) / 3.0; // Normalize by approx crown height
+        heightFactor = heightFactor * heightFactor; // Quadratic falloff
+
+        // Noise-based wind field
+        float windNoise = noise(vec2(worldX * 0.03 + time * 0.2, worldZ * 0.03));
+
+        // Directional wind
+        float windX = sin(time * 0.5 + worldX * 0.02) * windStrength;
+        float windZ = cos(time * 0.4 + worldZ * 0.02) * windStrength * 0.5;
+
+        // Gust effect
+        float gust = pow(sin(time * 0.3 + worldX * 0.01) * 0.5 + 0.5, 3.0);
+
+        // Apply wind displacement
+        pos.x += (windX + windNoise * 0.5) * heightFactor * (1.0 + gust * 0.5);
+        pos.z += (windZ + windNoise * 0.3) * heightFactor * (1.0 + gust * 0.3);
+
+        // Subtle branch rustling
+        float rustle = sin(time * 3.0 + pos.x * 2.0 + pos.z * 2.0) * 0.02 * heightFactor;
+        pos.x += rustle;
+        pos.z += rustle * 0.7;
+
+        vec4 mvPosition = modelViewMatrix * instanceMatrix * vec4(pos, 1.0);
+        gl_Position = projectionMatrix * mvPosition;
+    }
+`;
+
+const treeCrownFragmentShader = `
+    varying vec3 vNormal;
+    varying vec3 vColor;
+    varying vec3 vWorldPos;
+    uniform vec3 sunDirection;
+    uniform vec3 sunColor;
+    uniform vec3 ambientColor;
+
+    void main() {
+        // Basic diffuse lighting
+        vec3 normal = normalize(vNormal);
+        float diffuse = max(dot(normal, sunDirection), 0.0);
+
+        // Ambient + diffuse lighting
+        vec3 lighting = ambientColor * 0.4 + sunColor * diffuse * 0.6;
+
+        // Subsurface scattering for leaves
+        float sss = pow(max(0.0, dot(-normal, sunDirection)), 2.0) * 0.2;
+
+        vec3 color = vColor * lighting + vColor * sss * sunColor;
+
+        // Slight variation based on position
+        color *= 0.9 + sin(vWorldPos.x * 0.5 + vWorldPos.z * 0.5) * 0.1;
+
         gl_FragColor = vec4(color, 1.0);
     }
 `;
@@ -137,10 +288,17 @@ export class Vegetation {
     initGrass() {
         const cfg = this.config.vegetation || {};
         const windCfg = this.config.wind || {};
+        const lightCfg = this.config.lighting || {};
         const instanceCount = cfg.grassDensity || 50000;
 
         const geometry = new THREE.PlaneGeometry(0.08, 0.8, 1, 4);
         geometry.translate(0, 0.4, 0);
+
+        // Calculate sun direction from config
+        const sunElevation = THREE.MathUtils.degToRad(90 - (lightCfg.sunElevation || 8));
+        const sunAzimuth = THREE.MathUtils.degToRad(lightCfg.sunAzimuth || 200);
+        const sunDirection = new THREE.Vector3();
+        sunDirection.setFromSphericalCoords(1, sunElevation, sunAzimuth);
 
         const material = new THREE.ShaderMaterial({
             vertexShader: grassVertexShader,
@@ -148,9 +306,14 @@ export class Vegetation {
             uniforms: {
                 time: { value: 0 },
                 windSpeed: { value: windCfg.speed || 1.0 },
-                windStrength: { value: windCfg.swayAmount || 0.2 }
+                windStrength: { value: windCfg.swayAmount || 0.2 },
+                sunDirection: { value: sunDirection },
+                sunColor: { value: new THREE.Color(lightCfg.sunColor || 0xffaa55) }
             },
-            side: THREE.DoubleSide
+            side: THREE.DoubleSide,
+            transparent: true,
+            alphaTest: 0.1,
+            depthWrite: true
         });
 
         this.grassMesh = new THREE.InstancedMesh(geometry, material, instanceCount);
@@ -194,10 +357,17 @@ export class Vegetation {
 
     initTallGrass() {
         const cfg = this.config.vegetation || {};
+        const lightCfg = this.config.lighting || {};
         const instanceCount = Math.floor((cfg.grassDensity || 50000) * 0.15);
 
         const geometry = new THREE.PlaneGeometry(0.12, 1.5, 1, 6);
         geometry.translate(0, 0.75, 0);
+
+        // Calculate sun direction from config
+        const sunElevation = THREE.MathUtils.degToRad(90 - (lightCfg.sunElevation || 8));
+        const sunAzimuth = THREE.MathUtils.degToRad(lightCfg.sunAzimuth || 200);
+        const sunDirection = new THREE.Vector3();
+        sunDirection.setFromSphericalCoords(1, sunElevation, sunAzimuth);
 
         const material = new THREE.ShaderMaterial({
             vertexShader: grassVertexShader,
@@ -205,9 +375,14 @@ export class Vegetation {
             uniforms: {
                 time: { value: 0 },
                 windSpeed: { value: (this.config.wind?.speed || 1.0) * 0.8 },
-                windStrength: { value: (this.config.wind?.swayAmount || 0.2) * 1.3 }
+                windStrength: { value: (this.config.wind?.swayAmount || 0.2) * 1.3 },
+                sunDirection: { value: sunDirection },
+                sunColor: { value: new THREE.Color(lightCfg.sunColor || 0xffaa55) }
             },
-            side: THREE.DoubleSide
+            side: THREE.DoubleSide,
+            transparent: true,
+            alphaTest: 0.1,
+            depthWrite: true
         });
 
         this.tallGrassMesh = new THREE.InstancedMesh(geometry, material, instanceCount);
@@ -310,22 +485,44 @@ export class Vegetation {
     }
 
     initTrees() {
-        // Generic deciduous trees
+        // Generic deciduous trees with animated crowns
         const cfg = this.config.vegetation || {};
+        const lightCfg = this.config.lighting || {};
+        const windCfg = this.config.wind || {};
         const treeCount = Math.floor((cfg.treeCount || 80) * 0.3);
 
         const trunkGeo = new THREE.CylinderGeometry(0.15, 0.25, 2, 6);
         trunkGeo.translate(0, 1, 0);
-        const crownGeo = new THREE.SphereGeometry(1.5, 8, 6);
+        const crownGeo = new THREE.SphereGeometry(1.5, 12, 8);
         crownGeo.translate(0, 3, 0);
 
+        // Calculate sun direction
+        const sunElevation = THREE.MathUtils.degToRad(90 - (lightCfg.sunElevation || 8));
+        const sunAzimuth = THREE.MathUtils.degToRad(lightCfg.sunAzimuth || 200);
+        const sunDirection = new THREE.Vector3();
+        sunDirection.setFromSphericalCoords(1, sunElevation, sunAzimuth);
+
         const trunkMat = new THREE.MeshStandardMaterial({ color: 0x4a3520, roughness: 0.9 });
-        const crownMat = new THREE.MeshStandardMaterial({ color: 0x2a4a1a, roughness: 0.8 });
+
+        // Animated crown material
+        const crownMat = new THREE.ShaderMaterial({
+            vertexShader: treeCrownVertexShader,
+            fragmentShader: treeCrownFragmentShader,
+            uniforms: {
+                time: { value: 0 },
+                windStrength: { value: windCfg.swayAmount || 0.2 },
+                sunDirection: { value: sunDirection },
+                sunColor: { value: new THREE.Color(lightCfg.sunColor || 0xffaa55) },
+                ambientColor: { value: new THREE.Color(0x6688aa) }
+            }
+        });
 
         const trunks = new THREE.InstancedMesh(trunkGeo, trunkMat, treeCount);
         const crowns = new THREE.InstancedMesh(crownGeo, crownMat, treeCount);
 
         const dummy = new THREE.Object3D();
+        const crownColor = new THREE.Color();
+
         let count = 0;
 
         for (let i = 0; i < treeCount * 3 && count < treeCount; i++) {
@@ -344,6 +541,12 @@ export class Vegetation {
 
             trunks.setMatrixAt(count, dummy.matrix);
             crowns.setMatrixAt(count, dummy.matrix);
+
+            // Vary crown color slightly
+            crownColor.setHex(0x2a4a1a);
+            crownColor.offsetHSL(0, (Math.random() - 0.5) * 0.1, (Math.random() - 0.5) * 0.1);
+            crowns.setColorAt(count, crownColor);
+
             count++;
         }
 
@@ -355,10 +558,15 @@ export class Vegetation {
 
         this.scene.add(trunks);
         this.scene.add(crowns);
+
+        // Store reference for animation updates
+        this.treeCrowns = crowns;
     }
 
     initWillows() {
         const cfg = this.config.vegetation || {};
+        const lightCfg = this.config.lighting || {};
+        const windCfg = this.config.wind || {};
         const count = Math.floor((cfg.treeCount || 80) * 0.2);
 
         // Willow trunk - slightly curved
@@ -370,16 +578,32 @@ export class Vegetation {
         crownGeo.scale(1, 0.6, 1);
         crownGeo.translate(0, 3.5, 0);
 
+        // Calculate sun direction
+        const sunElevation = THREE.MathUtils.degToRad(90 - (lightCfg.sunElevation || 8));
+        const sunAzimuth = THREE.MathUtils.degToRad(lightCfg.sunAzimuth || 200);
+        const sunDirection = new THREE.Vector3();
+        sunDirection.setFromSphericalCoords(1, sunElevation, sunAzimuth);
+
         const trunkMat = new THREE.MeshStandardMaterial({ color: 0x5a4a3a, roughness: 0.9 });
-        const crownMat = new THREE.MeshStandardMaterial({
-            color: cfg.willowColor || 0x4a6a3a,
-            roughness: 0.7
+
+        // Animated willow crown - more sway for weeping effect
+        const crownMat = new THREE.ShaderMaterial({
+            vertexShader: treeCrownVertexShader,
+            fragmentShader: treeCrownFragmentShader,
+            uniforms: {
+                time: { value: 0 },
+                windStrength: { value: (windCfg.swayAmount || 0.2) * 1.5 }, // More sway for willows
+                sunDirection: { value: sunDirection },
+                sunColor: { value: new THREE.Color(lightCfg.sunColor || 0xffaa55) },
+                ambientColor: { value: new THREE.Color(0x6688aa) }
+            }
         });
 
         const trunks = new THREE.InstancedMesh(trunkGeo, trunkMat, count);
         const crowns = new THREE.InstancedMesh(crownGeo, crownMat, count);
 
         const dummy = new THREE.Object3D();
+        const crownColor = new THREE.Color();
         let placed = 0;
 
         // Willows near water
@@ -402,6 +626,12 @@ export class Vegetation {
 
             trunks.setMatrixAt(placed, dummy.matrix);
             crowns.setMatrixAt(placed, dummy.matrix);
+
+            // Willow crown color
+            crownColor.setHex(cfg.willowColor || 0x4a6a3a);
+            crownColor.offsetHSL(0, (Math.random() - 0.5) * 0.1, (Math.random() - 0.5) * 0.1);
+            crowns.setColorAt(placed, crownColor);
+
             placed++;
         }
 
@@ -412,6 +642,9 @@ export class Vegetation {
 
         this.scene.add(trunks);
         this.scene.add(crowns);
+
+        // Store for animation
+        this.willowCrowns = crowns;
     }
 
     initPoplars() {
@@ -569,6 +802,19 @@ export class Vegetation {
         }
         if (this.reedMesh?.material.uniforms) {
             this.reedMesh.material.uniforms.time.value = time;
+        }
+        // Update tree crown animations
+        if (this.treeCrowns?.material.uniforms) {
+            this.treeCrowns.material.uniforms.time.value = time;
+        }
+        if (this.willowCrowns?.material.uniforms) {
+            this.willowCrowns.material.uniforms.time.value = time;
+        }
+        if (this.poplarCrowns?.material.uniforms) {
+            this.poplarCrowns.material.uniforms.time.value = time;
+        }
+        if (this.spruceCrowns?.material.uniforms) {
+            this.spruceCrowns.material.uniforms.time.value = time;
         }
     }
 }
