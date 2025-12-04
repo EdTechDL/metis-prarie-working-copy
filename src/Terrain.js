@@ -2,26 +2,59 @@ import * as THREE from 'three';
 import { fbm, smoothstep } from './Utils.js';
 import { Props } from './Props.js';
 
-// Water vertex shader for animated waves
+// Enhanced water vertex shader with realistic waves and normals
 const waterVertexShader = `
     varying vec2 vUv;
     varying vec3 vWorldPosition;
+    varying vec3 vNormal;
+    varying vec3 vViewDir;
     uniform float time;
     uniform float waveIntensity;
+    uniform vec3 cameraPosition;
+
+    // Simplex-like noise function for organic waves
+    float hash(vec2 p) {
+        return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
+    }
+
+    float noise(vec2 p) {
+        vec2 i = floor(p);
+        vec2 f = fract(p);
+        f = f * f * (3.0 - 2.0 * f);
+        float a = hash(i);
+        float b = hash(i + vec2(1.0, 0.0));
+        float c = hash(i + vec2(0.0, 1.0));
+        float d = hash(i + vec2(1.0, 1.0));
+        return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
+    }
 
     void main() {
         vUv = uv;
         vec3 pos = position;
 
-        // Multi-layered wave animation
+        // Multi-layered realistic wave animation
         float wave1 = sin(pos.x * 0.05 + time * 0.5) * waveIntensity;
         float wave2 = sin(pos.y * 0.08 + time * 0.3) * waveIntensity * 0.5;
         float wave3 = cos((pos.x + pos.y) * 0.03 + time * 0.2) * waveIntensity * 0.3;
 
-        pos.z += wave1 + wave2 + wave3;
+        // Add organic noise-based ripples
+        float ripple1 = noise(vec2(pos.x * 0.1 + time * 0.2, pos.y * 0.1)) * waveIntensity * 0.3;
+        float ripple2 = noise(vec2(pos.x * 0.2 - time * 0.15, pos.y * 0.2 + time * 0.1)) * waveIntensity * 0.2;
+
+        pos.z += wave1 + wave2 + wave3 + ripple1 + ripple2;
+
+        // Calculate normal from wave derivatives for realistic lighting
+        float dx = cos(pos.x * 0.05 + time * 0.5) * 0.05 * waveIntensity +
+                   cos((pos.x + pos.y) * 0.03 + time * 0.2) * 0.03 * waveIntensity * 0.3;
+        float dy = cos(pos.y * 0.08 + time * 0.3) * 0.08 * waveIntensity * 0.5 +
+                   cos((pos.x + pos.y) * 0.03 + time * 0.2) * 0.03 * waveIntensity * 0.3;
+        vNormal = normalize(vec3(-dx, 1.0, -dy));
 
         vec4 worldPosition = modelMatrix * vec4(pos, 1.0);
         vWorldPosition = worldPosition.xyz;
+
+        // View direction for fresnel calculation
+        vViewDir = normalize(cameraPosition - worldPosition.xyz);
 
         gl_Position = projectionMatrix * viewMatrix * worldPosition;
     }
@@ -30,33 +63,61 @@ const waterVertexShader = `
 const waterFragmentShader = `
     varying vec2 vUv;
     varying vec3 vWorldPosition;
+    varying vec3 vNormal;
+    varying vec3 vViewDir;
     uniform vec3 waterColor;
     uniform vec3 deepColor;
+    uniform vec3 skyColor;
     uniform float opacity;
     uniform float time;
     uniform float specularIntensity;
+    uniform vec3 sunDirection;
 
     void main() {
-        // Distance from river center (z = 0) for depth variation
+        // Distance from river center for depth variation
         float distFromCenter = abs(vWorldPosition.z);
         float depthFactor = smoothstep(0.0, 20.0, distFromCenter);
 
-        // Blend between deep water (center) and shallow (edges)
-        vec3 color = mix(waterColor, deepColor, 1.0 - depthFactor);
+        // Fresnel effect - more reflection at grazing angles
+        float fresnel = pow(1.0 - max(dot(vViewDir, vNormal), 0.0), 3.0);
+        fresnel = mix(0.04, 1.0, fresnel); // Water has ~4% reflectance at normal incidence
 
-        // Animated specular highlights
-        float spec1 = sin(vWorldPosition.x * 0.1 + time) * 0.5 + 0.5;
-        float spec2 = cos(vWorldPosition.y * 0.15 + time * 0.7) * 0.5 + 0.5;
-        float specular = spec1 * spec2 * specularIntensity;
+        // Base water color with depth variation
+        vec3 baseColor = mix(waterColor, deepColor, 1.0 - depthFactor);
 
-        color += vec3(specular * 0.3);
+        // Sky reflection color (approximated)
+        vec3 reflectionColor = mix(skyColor, vec3(1.0, 0.95, 0.9), 0.3);
+
+        // Blend base color with reflection based on fresnel
+        vec3 color = mix(baseColor, reflectionColor, fresnel * 0.6);
+
+        // Sun specular highlight
+        vec3 halfDir = normalize(sunDirection + vViewDir);
+        float specAngle = max(dot(vNormal, halfDir), 0.0);
+        float specular = pow(specAngle, 64.0) * specularIntensity;
+
+        // Secondary softer specular for sun path on water
+        float sunPath = pow(specAngle, 8.0) * specularIntensity * 0.3;
+
+        color += vec3(1.0, 0.95, 0.85) * specular;
+        color += vec3(1.0, 0.9, 0.7) * sunPath;
+
+        // Animated caustic-like patterns (light dappling)
+        float caustic1 = sin(vWorldPosition.x * 0.5 + time * 1.5) * sin(vWorldPosition.y * 0.4 + time) * 0.5 + 0.5;
+        float caustic2 = sin(vWorldPosition.x * 0.7 - time * 1.2) * sin(vWorldPosition.y * 0.6 - time * 0.8) * 0.5 + 0.5;
+        float caustics = caustic1 * caustic2 * 0.15 * (1.0 - fresnel);
+        color += vec3(0.8, 0.9, 1.0) * caustics;
 
         // Subtle flow lines
         float flowLine = sin(vWorldPosition.x * 0.3 - time * 2.0) * 0.5 + 0.5;
-        flowLine = pow(flowLine, 4.0) * 0.1;
+        flowLine = pow(flowLine, 4.0) * 0.08;
         color += vec3(flowLine);
 
-        gl_FragColor = vec4(color, opacity);
+        // Foam at edges (where shallow)
+        float foam = smoothstep(0.85, 1.0, depthFactor);
+        color = mix(color, vec3(0.95, 0.95, 0.9), foam * 0.3);
+
+        gl_FragColor = vec4(color, opacity + fresnel * 0.1);
     }
 `;
 
@@ -235,9 +296,17 @@ export class Terrain {
 
     createWater(size) {
         const waterCfg = this.config.water || {};
+        const lightCfg = this.config.lighting || {};
+        const skyCfg = this.config.sky || {};
 
-        const waterGeo = new THREE.PlaneGeometry(size, 60, 100, 20);
+        const waterGeo = new THREE.PlaneGeometry(size, 60, 150, 30);
         waterGeo.rotateX(-Math.PI / 2);
+
+        // Calculate sun direction from config
+        const sunElevation = THREE.MathUtils.degToRad(90 - (lightCfg.sunElevation || 8));
+        const sunAzimuth = THREE.MathUtils.degToRad(lightCfg.sunAzimuth || 200);
+        const sunDirection = new THREE.Vector3();
+        sunDirection.setFromSphericalCoords(1, sunElevation, sunAzimuth);
 
         const waterMat = new THREE.ShaderMaterial({
             vertexShader: waterVertexShader,
@@ -246,9 +315,11 @@ export class Terrain {
                 time: { value: 0 },
                 waterColor: { value: new THREE.Color(waterCfg.color || 0x2d7a7a) },
                 deepColor: { value: new THREE.Color(waterCfg.deepColor || 0x1a5555) },
+                skyColor: { value: new THREE.Color(skyCfg.horizonColor || 0xffcc88) },
+                sunDirection: { value: sunDirection },
                 opacity: { value: waterCfg.opacity || 0.85 },
                 waveIntensity: { value: waterCfg.waveIntensity || 0.15 },
-                specularIntensity: { value: waterCfg.specularIntensity || 0.4 },
+                specularIntensity: { value: waterCfg.specularIntensity || 0.5 },
             },
             transparent: true,
             side: THREE.DoubleSide,
