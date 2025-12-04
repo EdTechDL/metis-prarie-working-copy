@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Li Mimwayr - Remembering & Resilience</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background: #0a0a0a;
+            font-family: 'Georgia', serif;
+            color: #d0d0d0;
+            min-height: 100vh;
+        }
+
+        /* Content Warning Overlay */
+        #content-warning {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        #content-warning.hidden {
+            display: none;
+        }
+        .warning-box {
+            max-width: 550px;
+            background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%);
+            border: 2px solid #cc6600;
+            border-radius: 12px;
+            padding: 35px 40px;
+            text-align: center;
+        }
+        .warning-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+        .warning-box h2 {
+            color: #cc6600;
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+        }
+        .warning-box p {
+            line-height: 1.7;
+            margin-bottom: 15px;
+            font-size: 0.95rem;
+        }
+        .warning-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 25px;
+        }
+        .warning-buttons button {
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        #proceed-btn {
+            background: #cc6600;
+            color: white;
+            border: none;
+        }
+        #proceed-btn:hover {
+            background: #dd7711;
+        }
+        #return-btn {
+            background: transparent;
+            color: #888;
+            border: 1px solid #555;
+        }
+        #return-btn:hover {
+            border-color: #888;
+            color: #aaa;
+        }
+
+        /* Main Content */
+        #main-content {
+            display: none;
+            min-height: 100vh;
+        }
+        #main-content.visible {
+            display: block;
+        }
+
+        .back-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 100;
+            background: rgba(204, 102, 0, 0.9);
+            color: white;
+            border: 2px solid #cc6600;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: bold;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        .back-button:hover {
+            background: #cc6600;
+            transform: scale(1.05);
+        }
+
+        /* Header */
+        header {
+            text-align: center;
+            padding: 80px 20px 50px;
+            background: linear-gradient(180deg, #1a1510 0%, #0a0a0a 100%);
+        }
+        header h1 {
+            font-size: 2.5rem;
+            color: #cc6600;
+            margin-bottom: 10px;
+            text-shadow: 0 0 30px rgba(204, 102, 0, 0.3);
+        }
+        header .subtitle {
+            font-size: 1.2rem;
+            color: #888;
+            font-style: italic;
+        }
+
+        /* Sections */
+        section {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 50px 30px;
+        }
+
+        .story-section {
+            border-bottom: 1px solid #333;
+            padding-bottom: 50px;
+            margin-bottom: 50px;
+        }
+
+        .story-section h2 {
+            color: #cc6600;
+            font-size: 1.6rem;
+            margin-bottom: 25px;
+        }
+
+        .story-section p {
+            font-size: 1.05rem;
+            line-height: 1.9;
+            margin-bottom: 20px;
+            color: #c0c0c0;
+        }
+
+        .quote-block {
+            background: rgba(204, 102, 0, 0.1);
+            border-left: 4px solid #cc6600;
+            padding: 25px 30px;
+            margin: 30px 0;
+            font-style: italic;
+        }
+        .quote-block .attribution {
+            margin-top: 15px;
+            font-size: 0.9rem;
+            color: #888;
+            font-style: normal;
+        }
+
+        /* Timeline */
+        .timeline {
+            position: relative;
+            padding-left: 40px;
+            margin: 40px 0;
+        }
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 10px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: linear-gradient(180deg, #cc6600 0%, #663300 100%);
+        }
+        .timeline-item {
+            position: relative;
+            margin-bottom: 30px;
+        }
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -34px;
+            top: 5px;
+            width: 12px;
+            height: 12px;
+            background: #cc6600;
+            border-radius: 50%;
+        }
+        .timeline-item .year {
+            color: #cc6600;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+        .timeline-item .event {
+            color: #a0a0a0;
+            margin-top: 5px;
+            line-height: 1.6;
+        }
+
+        /* Resilience Section */
+        .resilience-section {
+            background: linear-gradient(135deg, #1a2010 0%, #0a0a0a 100%);
+            border: 1px solid #446622;
+            border-radius: 12px;
+            padding: 40px;
+            margin: 50px 0;
+        }
+        .resilience-section h2 {
+            color: #88aa44;
+        }
+        .resilience-section p {
+            color: #b0c090;
+        }
+
+        /* Actions Section */
+        .actions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+        .action-card {
+            background: rgba(204, 102, 0, 0.1);
+            border: 1px solid #663300;
+            border-radius: 8px;
+            padding: 25px;
+            text-align: center;
+        }
+        .action-card h3 {
+            color: #cc6600;
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+        }
+        .action-card p {
+            font-size: 0.9rem;
+            color: #999;
+            margin: 0;
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 50px 20px;
+            background: #0d0d0d;
+            border-top: 1px solid #222;
+        }
+        footer p {
+            color: #666;
+            font-size: 0.9rem;
+            line-height: 1.8;
+        }
+        footer .crisis-line {
+            color: #cc6600;
+            font-weight: bold;
+            font-size: 1rem;
+            margin-top: 20px;
+        }
+
+        /* Credit footer */
+        .experience-credit {
+            position: fixed;
+            bottom: 15px;
+            right: 20px;
+            font-size: 0.7rem;
+            color: rgba(255, 255, 255, 0.4);
+            text-align: right;
+            pointer-events: none;
+            z-index: 100;
+        }
+        .experience-credit .designer {
+            color: rgba(204, 102, 0, 0.7);
+        }
+    </style>
+</head>
+<body>
+    <!-- Content Warning -->
+    <div id="content-warning">
+        <div class="warning-box">
+            <div class="warning-icon">◆</div>
+            <h2>A Moment of Reflection</h2>
+            <p>
+                This experience shares the history of residential schools and their impact on Métis communities.
+                This content discusses cultural loss, family separation, and intergenerational trauma.
+            </p>
+            <p>
+                We share this history to honour the truth, remember the survivors, and understand
+                why cultural preservation matters so deeply today.
+            </p>
+            <p style="color: #888; font-size: 0.9rem;">
+                If you are a survivor or have been affected by residential schools,
+                support is available. The Indian Residential School Survivors Society
+                Crisis Line is available 24/7: <strong>1-866-925-4419</strong>
+            </p>
+            <div class="warning-buttons">
+                <button id="return-btn" onclick="window.location.href='../index.html'">Return to Prairie</button>
+                <button id="proceed-btn">Continue with Care</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div id="main-content">
+        <a href="../index.html" class="back-button">← Back to Prairie</a>
+
+        <header>
+            <h1>Li Mimwayr</h1>
+            <p class="subtitle">Remembering & Resilience</p>
+        </header>
+
+        <section>
+            <div class="story-section">
+                <h2>The History</h2>
+                <p>
+                    For over a century, the Canadian government, in partnership with churches,
+                    operated residential schools with the explicit goal of eliminating Indigenous
+                    cultures, languages, and identities. The Métis, along with First Nations and
+                    Inuit children, were taken from their families and communities.
+                </p>
+                <p>
+                    Children were forbidden from speaking their languages—including Michif—and
+                    were punished for practicing their cultural traditions. They were separated
+                    from their families, often for years at a time, breaking the bonds that
+                    carry culture from one generation to the next.
+                </p>
+
+                <div class="timeline">
+                    <div class="timeline-item">
+                        <div class="year">1870s-1880s</div>
+                        <div class="event">First residential schools established in western Canada. Métis children begin to be taken.</div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="year">1920</div>
+                        <div class="event">Attendance becomes compulsory. Parents face imprisonment for keeping children home.</div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="year">1960s</div>
+                        <div class="event">The "Sixties Scoop" sees thousands of Indigenous children placed in non-Indigenous foster homes.</div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="year">1996</div>
+                        <div class="event">The last federally-run residential school in Canada closes.</div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="year">2008</div>
+                        <div class="event">Prime Minister Stephen Harper delivers formal apology to former students.</div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="year">2015</div>
+                        <div class="event">Truth and Reconciliation Commission releases its final report with 94 Calls to Action.</div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="year">2021</div>
+                        <div class="event">Unmarked graves discovered at former residential school sites across Canada.</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="story-section">
+                <h2>What Was Lost</h2>
+                <p>
+                    The residential school system was designed to sever the ties between
+                    children and their cultures. For Métis communities, this meant:
+                </p>
+                <p>
+                    <strong>Language:</strong> Children were punished for speaking Michif,
+                    the unique language that blended their Cree and French heritage. Many
+                    survivors never spoke it again, and today Michif is endangered.
+                </p>
+                <p>
+                    <strong>Traditional Knowledge:</strong> The skills passed from grandparents
+                    to grandchildren—beadwork, medicine, hunting, storytelling—were interrupted.
+                    Generations lost access to teachings that had flowed for centuries.
+                </p>
+                <p>
+                    <strong>Family Bonds:</strong> Children grew up without parents, and parents
+                    without children. The trauma of separation echoes through generations.
+                </p>
+
+                <div class="quote-block">
+                    "They tried to take our language, our culture, our identity. But they
+                    couldn't take our spirit. We are still here, and we are bringing back
+                    what they tried to destroy."
+                    <div class="attribution">— Métis Elder</div>
+                </div>
+            </div>
+
+            <div class="resilience-section">
+                <h2>Rising Strong: Cultural Revitalization</h2>
+                <p>
+                    Despite generations of systematic attempts to erase their culture, the
+                    Métis people have shown remarkable resilience. Today, there is a powerful
+                    movement to reclaim and revitalize what was nearly lost.
+                </p>
+                <p>
+                    <strong>Language Revival:</strong> Michif language programs are growing.
+                    Elders work with young people to ensure the language survives and thrives.
+                    Apps, courses, and immersion programs are bringing Michif to new generations.
+                </p>
+                <p>
+                    <strong>Cultural Celebration:</strong> Métis Days, jigging competitions,
+                    and fiddle festivals bring communities together in celebration. Young people
+                    are learning beadwork, sash weaving, and traditional crafts.
+                </p>
+                <p>
+                    <strong>Political Recognition:</strong> The Métis Nation continues to
+                    fight for and win recognition of their rights, land claims, and self-governance.
+                </p>
+                <p style="color: #88aa44; margin-top: 25px; font-size: 1.1rem;">
+                    <em>This prairie experience you're exploring is part of that revitalization—using
+                    new technology to share old wisdom, ensuring these teachings continue for
+                    generations to come.</em>
+                </p>
+            </div>
+
+            <div class="story-section" style="border-bottom: none;">
+                <h2>Moving Forward Together</h2>
+                <p>
+                    Reconciliation is not a destination but a journey. For educators and school
+                    leaders, understanding this history is essential to creating spaces where
+                    Métis students feel seen, valued, and proud of their heritage.
+                </p>
+
+                <div class="actions-grid">
+                    <div class="action-card">
+                        <h3>Learn</h3>
+                        <p>Read the TRC's Calls to Action and understand the history</p>
+                    </div>
+                    <div class="action-card">
+                        <h3>Listen</h3>
+                        <p>Centre Métis voices and perspectives in your teaching</p>
+                    </div>
+                    <div class="action-card">
+                        <h3>Act</h3>
+                        <p>Implement Indigenous content meaningfully in curriculum</p>
+                    </div>
+                    <div class="action-card">
+                        <h3>Support</h3>
+                        <p>Advocate for Indigenous students and communities</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <footer>
+            <p>
+                We honour the survivors, remember those who did not return,<br>
+                and commit to truth, healing, and reconciliation.
+            </p>
+            <p class="crisis-line">
+                Indian Residential School Survivors Society Crisis Line: 1-866-925-4419<br>
+                Available 24 hours a day, 7 days a week
+            </p>
+        </footer>
+    </div>
+
+    <script>
+        // Handle proceed button
+        document.getElementById('proceed-btn').addEventListener('click', function() {
+            document.getElementById('content-warning').classList.add('hidden');
+            document.getElementById('main-content').classList.add('visible');
+        });
+    </script>
+
+    <div class="experience-credit">
+        Designed by <span class="designer">Amarah Ishaque</span><br>
+        EDU596 Métis Foundational Knowledge
+    </div>
+</body>
+</html>

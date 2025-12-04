@@ -1,0 +1,604 @@
+\documentclass[11pt, letterpaper]{article}
+
+% Packages
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx}
+\usepackage{titlesec}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{fancyhdr}
+\usepackage{tcolorbox}
+\usepackage[T1]{fontenc}
+\usepackage{setspace}
+\usepackage{multicol}
+\usepackage{tikz}
+
+% Colors inspired by Métis sash
+\definecolor{metisred}{RGB}{180, 40, 40}
+\definecolor{metisblue}{RGB}{40, 80, 140}
+\definecolor{prairietan}{RGB}{180, 160, 120}
+\definecolor{earthbrown}{RGB}{100, 80, 60}
+\definecolor{sagegreen}{RGB}{100, 130, 90}
+
+% Header/Footer
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\textcolor{metisblue}{\small Métis Prairie Journey}}
+\fancyhead[R]{\textcolor{metisblue}{\small Student Workbook}}
+\fancyfoot[C]{\textcolor{earthbrown}{\thepage}}
+\renewcommand{\headrulewidth}{0.5pt}
+\renewcommand{\footrulewidth}{0pt}
+
+% Section formatting
+\titleformat{\section}
+  {\Large\bfseries\color{metisred}}
+  {\thesection}{1em}{}[\titlerule]
+
+\titleformat{\subsection}
+  {\large\bfseries\color{metisblue}}
+  {\thesubsection}{1em}{}
+
+% Custom boxes
+\newtcolorbox{reflectionbox}{
+  colback=prairietan!15,
+  colframe=earthbrown,
+  arc=3mm,
+  boxrule=1pt,
+  left=10pt,
+  right=10pt,
+  top=8pt,
+  bottom=8pt
+}
+
+\newtcolorbox{elderbox}{
+  colback=metisblue!10,
+  colframe=metisblue,
+  arc=3mm,
+  boxrule=1pt,
+  title={\textbf{Elder Teaching}},
+  fonttitle=\color{white},
+  coltitle=white,
+  colbacktitle=metisblue
+}
+
+\newtcolorbox{michifbox}{
+  colback=sagegreen!15,
+  colframe=sagegreen!80!black,
+  arc=2mm,
+  boxrule=1pt,
+  left=8pt,
+  right=8pt,
+  top=6pt,
+  bottom=6pt
+}
+
+\newtcolorbox{writingspace}[1][5cm]{
+  colback=white,
+  colframe=prairietan,
+  arc=0mm,
+  boxrule=0.5pt,
+  height=#1,
+  valign=top
+}
+
+% Line spacing for writing
+\newcommand{\writelines}[1]{%
+  \par\vspace{3pt}%
+  \foreach \i in {1,...,#1} {%
+    \noindent\makebox[\linewidth]{\textcolor{prairietan!60}{\dotfill}}\par\vspace{8pt}%
+  }%
+}
+
+\begin{document}
+
+% Title Page
+\begin{titlepage}
+\centering
+\vspace*{2cm}
+
+{\Huge\bfseries\color{metisred} Métis Prairie Journey\par}
+\vspace{0.5cm}
+{\Large\color{metisblue} Student Workbook\par}
+
+\vspace{1.5cm}
+
+\begin{tikzpicture}
+  % Decorative Métis infinity symbol
+  \draw[metisred, line width=3pt] (0,0) .. controls (1,1) and (2,1) .. (3,0)
+                                        .. controls (2,-1) and (1,-1) .. (0,0);
+  \draw[metisblue, line width=3pt] (3,0) .. controls (4,1) and (5,1) .. (6,0)
+                                         .. controls (5,-1) and (4,-1) .. (3,0);
+\end{tikzpicture}
+
+\vspace{1.5cm}
+
+{\large An Interactive Learning Experience Exploring\\[0.3cm]
+\textbf{Métis Ways of Knowing, Being, and Doing}\par}
+
+\vspace{2cm}
+
+\begin{tcolorbox}[
+  colback=prairietan!20,
+  colframe=earthbrown,
+  width=0.8\textwidth,
+  arc=5mm
+]
+\centering
+\large
+\textbf{Student Name:} \underline{\hspace{6cm}}\\[0.5cm]
+\textbf{Date:} \underline{\hspace{3cm}} \hspace{1cm} \textbf{Class:} \underline{\hspace{3cm}}
+\end{tcolorbox}
+
+\vfill
+
+{\small\color{earthbrown}
+Designed by Amarah Ishaque\\
+EDU596 Métis Foundational Knowledge\\for Teachers and School Leaders\\[0.3cm]
+December 2025
+}
+
+\end{titlepage}
+
+% Welcome Page
+\section*{Taanishi --- Welcome}
+
+\begin{elderbox}
+``The land remembers what the people teach it.''\\
+\hfill--- Métis Proverb
+\end{elderbox}
+
+\vspace{0.5cm}
+
+Welcome to the Métis Prairie, an interactive digital experience that invites you to walk across traditional Métis lands, visit with Elders, and discover the rich cultural heritage of the Métis people.
+
+As you explore, you will encounter:
+\begin{itemize}[leftmargin=2cm]
+  \item \textbf{5 Elder Cabins} --- Each Elder shares wisdom and poses a math challenge
+  \item \textbf{6 Gathering Fires} --- Interactive experiences about Métis culture
+  \item \textbf{6 Cultural Sites} --- Medicine gardens, fishing spots, farms, and more
+  \item \textbf{1 Memorial Site} --- A space for remembering and resilience
+\end{itemize}
+
+\vspace{0.5cm}
+
+This workbook is your companion for the journey. As you explore, use these pages to:
+\begin{itemize}
+  \item Record new Michif words and their meanings
+  \item Reflect on what you learn from each station
+  \item Make connections to your own life and community
+  \item Think about how Métis teachings can guide your own learning
+\end{itemize}
+
+\begin{reflectionbox}
+\textbf{Before You Begin:} What do you already know about Métis people, culture, or history? What are you curious to learn?
+
+\writelines{6}
+\end{reflectionbox}
+
+\newpage
+
+% Section 1: Ways of Knowing
+\section{Métis Ways of Knowing}
+\textit{Kishkayhtamowin --- Knowledge}
+
+\begin{michifbox}
+\textbf{Michif Word:} \textit{Kishkayhtamowin} (kish-kay-tah-mo-win)\\
+\textbf{Meaning:} Knowledge, understanding, wisdom gained through experience
+\end{michifbox}
+
+\vspace{0.5cm}
+
+Métis ways of knowing recognize that knowledge comes from many sources: from Elders, from the land, from stories, from doing, and from relationships. As you visit the Elder cabins, pay attention to how knowledge is shared.
+
+\subsection*{Elder Cabin Visits}
+
+\textbf{Cabin 1:}\\[0.3cm]
+What teaching did this Elder share?
+
+\writelines{3}
+
+What math concept did you explore?
+
+\writelines{2}
+
+\vspace{0.5cm}
+\textbf{Cabin 2:}\\[0.3cm]
+What teaching did this Elder share?
+
+\writelines{3}
+
+What math concept did you explore?
+
+\writelines{2}
+
+\newpage
+
+\textbf{Cabin 3:}\\[0.3cm]
+What teaching did this Elder share?
+
+\writelines{3}
+
+What math concept did you explore?
+
+\writelines{2}
+
+\vspace{0.5cm}
+\textbf{Cabin 4:}\\[0.3cm]
+What teaching did this Elder share?
+
+\writelines{3}
+
+What math concept did you explore?
+
+\writelines{2}
+
+\vspace{0.5cm}
+\textbf{Cabin 5:}\\[0.3cm]
+What teaching did this Elder share?
+
+\writelines{3}
+
+What math concept did you explore?
+
+\writelines{2}
+
+\newpage
+
+\begin{reflectionbox}
+\textbf{Reflection: Ways of Knowing}
+
+How is learning from Elders different from learning from a textbook? What makes Elder knowledge special?
+
+\writelines{5}
+
+The Métis believe knowledge should be \textit{relational}---connected to people, places, and experiences. How did the Elder teachings connect math to real life?
+
+\writelines{5}
+
+What is one thing you learned that you could share with someone in your family or community?
+
+\writelines{4}
+\end{reflectionbox}
+
+\newpage
+
+% Section 2: Ways of Being
+\section{Métis Ways of Being}
+\textit{Itowin --- How We Are}
+
+\begin{michifbox}
+\textbf{Michif Word:} \textit{Wahkohtowin} (wah-koh-to-win)\\
+\textbf{Meaning:} Kinship, relatedness---the understanding that all things are connected
+\end{michifbox}
+
+\vspace{0.5cm}
+
+Métis ways of being emphasize relationships: with family, community, the land, and all living things. The concept of \textit{wahkohtowin} teaches that we are all related and responsible for each other.
+
+\subsection*{Gathering Fire Discoveries}
+
+As you visit the gathering fires, record what you learn about Métis culture, traditions, and identity.
+
+\vspace{0.3cm}
+\textbf{Fire 1:} Topic: \underline{\hspace{6cm}}
+
+What did you discover?
+
+\writelines{3}
+
+\textbf{Fire 2:} Topic: \underline{\hspace{6cm}}
+
+What did you discover?
+
+\writelines{3}
+
+\textbf{Fire 3:} Topic: \underline{\hspace{6cm}}
+
+What did you discover?
+
+\writelines{3}
+
+\newpage
+
+\textbf{Fire 4:} Topic: \underline{\hspace{6cm}}
+
+What did you discover?
+
+\writelines{3}
+
+\textbf{Fire 5:} Topic: \underline{\hspace{6cm}}
+
+What did you discover?
+
+\writelines{3}
+
+\textbf{Fire 6:} Topic: \underline{\hspace{6cm}}
+
+What did you discover?
+
+\writelines{3}
+
+\vspace{0.5cm}
+
+\begin{reflectionbox}
+\textbf{Reflection: Ways of Being}
+
+The Métis sash (\textit{la ceinture fléchée}) weaves together different threads to create something beautiful and strong. How is this like the Métis people themselves?
+
+\writelines{4}
+
+What does \textit{wahkohtowin} (we are all related) mean to you? How might this teaching change how you treat others or the environment?
+
+\writelines{4}
+\end{reflectionbox}
+
+\newpage
+
+% Section 3: Ways of Doing
+\section{Métis Ways of Doing}
+\textit{Itatisiwin --- Our Practices}
+
+\begin{michifbox}
+\textbf{Michif Word:} \textit{Itatisiwin} (i-ta-ti-si-win)\\
+\textbf{Meaning:} Way of life, customs, practices, the things we do
+\end{michifbox}
+
+\vspace{0.5cm}
+
+Métis ways of doing include traditional practices like hunting, fishing, beadwork, jigging, and fiddle music. These practices connect people to the land and to each other across generations.
+
+\subsection*{Cultural Site Explorations}
+
+Record what you learn at each cultural site about how Métis people live and work.
+
+\vspace{0.3cm}
+\textbf{Medicine Garden:}\\
+What plants did you learn about? What are they used for?
+
+\writelines{4}
+
+\textbf{Fishing Site:}\\
+Why was fishing important to Métis communities?
+
+\writelines{3}
+
+\textbf{Farm/Garden:}\\
+What did Métis people grow? How did they use the land?
+
+\writelines{3}
+
+\newpage
+
+\textbf{Red River Cart:}\\
+Why was the Red River cart so important to Métis trade and travel?
+
+\writelines{4}
+
+\textbf{Other Cultural Sites:}
+
+What else did you discover?
+
+\writelines{5}
+
+\begin{reflectionbox}
+\textbf{Reflection: Ways of Doing}
+
+Many Métis practices combine Indigenous and European traditions in new ways. What examples of this cultural blending did you notice?
+
+\writelines{4}
+
+Traditional skills like beadwork, medicine gathering, and canoe building were passed from generation to generation. Why is it important to keep these practices alive today?
+
+\writelines{4}
+\end{reflectionbox}
+
+\newpage
+
+% Section 4: Remembering & Resilience
+\section{Li Mimwayr --- Remembering}
+\textit{Honouring History, Building Strength}
+
+\begin{elderbox}
+``They tried to take our language, our culture, our identity. But they couldn't take our spirit. We are still here, and we are bringing back what they tried to destroy.''\\
+\hfill--- Métis Elder
+\end{elderbox}
+
+\vspace{0.5cm}
+
+The Memorial site explores a difficult part of Canadian history: the residential school system and its impact on Métis communities. Understanding this history helps us understand why cultural preservation matters so deeply today.
+
+\subsection*{Memorial Site Visit}
+
+\begin{reflectionbox}
+\textbf{Note:} This section discusses residential schools and intergenerational trauma. Take your time and be gentle with yourself. If you need support, please talk to a trusted adult.
+\end{reflectionbox}
+
+\vspace{0.5cm}
+
+\textbf{What happened?}\\
+In your own words, what did the residential school system do?
+
+\writelines{5}
+
+\textbf{What was lost?}\\
+What did Métis communities lose because of residential schools?
+
+\writelines{4}
+
+\newpage
+
+\textbf{Resilience and Revitalization}\\
+Despite everything, the Métis people survived. What are they doing today to bring back their culture and language?
+
+\writelines{5}
+
+\begin{reflectionbox}
+\textbf{Reflection: Why This Matters}
+
+The Truth and Reconciliation Commission created 94 Calls to Action. Why is it important for all Canadians to learn about residential schools?
+
+\writelines{4}
+
+How can schools today be different from residential schools? What should education look like for Indigenous students?
+
+\writelines{4}
+
+What is one action \textit{you} could take to support reconciliation?
+
+\writelines{3}
+\end{reflectionbox}
+
+\newpage
+
+% Section 5: Michif Language
+\section{Michif Language Learning}
+\textit{Li Michif --- Our Language}
+
+\begin{michifbox}
+Michif is the unique language of the Métis people, blending Cree and French with elements of other Indigenous and European languages. Today, Michif is endangered, with fewer than 1,000 fluent speakers remaining.
+\end{michifbox}
+
+\vspace{0.5cm}
+
+\subsection*{Words I Learned}
+
+Record new Michif words as you explore the prairie.
+
+\vspace{0.3cm}
+\begin{center}
+\renewcommand{\arraystretch}{2}
+\begin{tabular}{|p{4cm}|p{4cm}|p{5cm}|}
+\hline
+\textbf{Michif Word} & \textbf{English Meaning} & \textbf{How I'll Remember It} \\
+\hline
+Taanishi & Hello/How are you & \\
+\hline
+Marsii & Thank you & \\
+\hline
+& & \\
+\hline
+& & \\
+\hline
+& & \\
+\hline
+& & \\
+\hline
+& & \\
+\hline
+& & \\
+\hline
+& & \\
+\hline
+& & \\
+\hline
+\end{tabular}
+\end{center}
+
+\vspace{0.5cm}
+
+\begin{reflectionbox}
+\textbf{Reflection: Language and Identity}
+
+Why do you think the Canadian government tried to stop Indigenous children from speaking their languages?
+
+\writelines{3}
+
+What would it feel like if you were punished for speaking your home language?
+
+\writelines{3}
+\end{reflectionbox}
+
+\newpage
+
+% Section 6: Final Reflections
+\section{Journey's End}
+\textit{Kihci-Marsii --- A Great Thank You}
+
+\begin{elderbox}
+``We are all related. What we do for ourselves, we do for all.''
+\end{elderbox}
+
+\vspace{0.5cm}
+
+You have completed your journey across the Métis Prairie. Take a moment to reflect on everything you have learned and experienced.
+
+\subsection*{My Learning Journey}
+
+\textbf{Three things I learned about Métis culture:}
+
+\begin{enumerate}[leftmargin=1.5cm]
+  \item \writelines{2}
+  \item \writelines{2}
+  \item \writelines{2}
+\end{enumerate}
+
+\textbf{Two things that surprised me:}
+
+\begin{enumerate}[leftmargin=1.5cm]
+  \item \writelines{2}
+  \item \writelines{2}
+\end{enumerate}
+
+\textbf{One question I still have:}
+
+\writelines{3}
+
+\newpage
+
+\begin{reflectionbox}
+\textbf{Final Reflection: Connecting to Your Life}
+
+How has this experience changed how you think about Métis people and their contributions to Canada?
+
+\writelines{5}
+
+The Métis concept of \textit{wahkohtowin} (we are all related) teaches that we are connected to all people and all living things. How might this teaching guide how you act in your school, community, or the world?
+
+\writelines{5}
+
+If you could share one thing from this experience with others, what would it be and why?
+
+\writelines{5}
+\end{reflectionbox}
+
+\newpage
+
+\subsection*{For Educators: Using This Experience}
+
+\begin{reflectionbox}
+If you are a teacher or school leader exploring this resource:
+
+\vspace{0.3cm}
+\textbf{How might you use the Métis Prairie experience in your classroom or school?}
+
+\writelines{4}
+
+\textbf{What challenges might you face in implementing Métis content in your teaching? How might you address them?}
+
+\writelines{4}
+
+\textbf{How does this resource help you understand Métis ways of knowing, being, and doing?}
+
+\writelines{4}
+
+\textbf{What is one action you will take to advance Métis education in your learning community?}
+
+\writelines{3}
+\end{reflectionbox}
+
+\vspace{1cm}
+
+\begin{center}
+\begin{tikzpicture}
+  % Métis infinity symbol
+  \draw[metisred, line width=2pt] (0,0) .. controls (0.7,0.7) and (1.4,0.7) .. (2.1,0)
+                                        .. controls (1.4,-0.7) and (0.7,-0.7) .. (0,0);
+  \draw[metisblue, line width=2pt] (2.1,0) .. controls (2.8,0.7) and (3.5,0.7) .. (4.2,0)
+                                         .. controls (3.5,-0.7) and (2.8,-0.7) .. (2.1,0);
+\end{tikzpicture}
+
+\vspace{0.5cm}
+\textcolor{earthbrown}{\textit{Thank you for walking this path with open mind and heart.}}
+\end{center}
+
+\end{document}

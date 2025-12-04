@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>WebGL Test</title>
+</head>
+<body>
+    <h1>WebGL Test</h1>
+    <canvas id="test" width="400" height="300" style="border:1px solid black;"></canvas>
+    <p id="result"></p>
+    <script>
+        const canvas = document.getElementById('test');
+        const result = document.getElementById('result');
+
+        let gl = null;
+        try {
+            gl = canvas.getContext('webgl2') || canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+        } catch(e) {
+            result.innerHTML = 'Error: ' + e.message;
+        }
+
+        if (gl) {
+            result.innerHTML = '✅ WebGL is working! Renderer: ' + gl.getParameter(gl.RENDERER);
+            gl.clearColor(0.2, 0.6, 0.3, 1.0);
+            gl.clear(gl.COLOR_BUFFER_BIT);
+        } else {
+            result.innerHTML = '❌ WebGL is NOT available on this browser/device';
+        }
+    </script>
+</body>
+</html>

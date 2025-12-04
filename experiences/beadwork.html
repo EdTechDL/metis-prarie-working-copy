@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Métis Mathematical Landscape</title>
+    <style>
+        body { margin: 0; overflow: hidden; font-family: 'Segoe UI', sans-serif; background-color: #87CEEB; }
+
+        /* Back Button */
+        .back-button {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: rgba(191, 46, 26, 0.9);
+            color: white;
+            border: 2px solid #bf2e1a;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'Segoe UI', sans-serif;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .back-button:hover {
+            background: #2c3e50;
+            border-color: #2c3e50;
+            transform: translateX(3px);
+        }
+        #ui-container {
+            position: absolute; top: 20px; left: 20px; width: 350px;
+            background: rgba(255, 255, 255, 0.95); padding: 20px;
+            border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            pointer-events: auto;
+        }
+        h1 { margin: 0 0 10px 0; font-size: 1.2rem; color: #2c3e50; }
+        h2 { font-size: 1rem; color: #bf2e1a; margin-top: 5px; } /* Métis Red */
+        p { font-size: 0.9rem; line-height: 1.4; color: #555; }
+        .controls { margin-top: 15px; border-top: 1px solid #ccc; padding-top: 10px; }
+        button {
+            background: #2c3e50; color: white; border: none; padding: 8px 12px;
+            margin: 5px 2px; border-radius: 4px; cursor: pointer; transition: 0.3s;
+        }
+        button:hover { background: #bf2e1a; }
+        button.active { background: #bf2e1a; font-weight: bold; }
+        
+        .slider-container { margin: 10px 0; }
+        label { display: block; font-size: 0.8rem; font-weight: bold; }
+        input[type=range] { width: 100%; }
+        
+        #math-display {
+            background: #f0f0f0; padding: 10px; border-left: 4px solid #bf2e1a;
+            margin-top: 10px; font-family: 'Courier New', monospace; font-weight: bold;
+        }
+
+        /* Credit footer */
+        .experience-credit {
+            position: fixed;
+            bottom: 15px;
+            right: 20px;
+            font-size: 0.7rem;
+            color: rgba(0, 0, 0, 0.4);
+            text-align: right;
+            pointer-events: none;
+            z-index: 100;
+        }
+        .experience-credit .designer {
+            color: rgba(180, 100, 0, 0.7);
+        }
+    </style>
+</head>
+<body>
+
+<a href="../index.html" class="back-button">Back to Prairie →</a>
+
+<div id="ui-container">
+    <h1>Métis Mathematical Landscape</h1>
+    <div id="description">
+        <p>Explore Math 20-1 concepts through cultural context. Select a zone below.</p>
+    </div>
+
+    <div class="controls">
+        <button onclick="switchZone('beadwork')" id="btn-bead">Beadwork (Trig)</button>
+        <button onclick="switchZone('survey')" id="btn-survey">River Lots (Sine Law)</button>
+        <button onclick="switchZone('contribute')" id="btn-contrib">Add Discovery</button>
+    </div>
+
+    <div id="dynamic-controls">
+        <!-- JS will inject sliders here -->
+    </div>
+    
+    <div id="math-display">Select a zone to begin.</div>
+</div>
+
+<!-- Import Three.js as an ES Module -->
+<script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+        }
+    }
+</script>
+
+<script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import { FontLoader } from 'three/addons/loaders/FontLoader.js';
+    import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
+
+    // --- SCENE SETUP ---
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x87CEEB); // Sky blue
+    scene.fog = new THREE.Fog(0x87CEEB, 20, 100);
+
+    const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera.position.set(10, 10, 20);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.shadowMap.enabled = true;
+    document.body.appendChild(renderer.domElement);
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+
+    // --- LIGHTING ---
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+    scene.add(ambientLight);
+
+    const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+    dirLight.position.set(10, 20, 10);
+    dirLight.castShadow = true;
+    scene.add(dirLight);
+
+    // --- GROUND (The Prairie) ---
+    const groundGeo = new THREE.PlaneGeometry(200, 200);
+    const groundMat = new THREE.MeshStandardMaterial({ color: 0x556B2F }); // Olive Drab
+    const ground = new THREE.Mesh(groundGeo, groundMat);
+    ground.rotation.x = -Math.PI / 2;
+    ground.receiveShadow = true;
+    scene.add(ground);
+
+    // --- GROUPS FOR ZONES ---
+    const zoneBeadwork = new THREE.Group();
+    const zoneSurvey = new THREE.Group();
+    const zoneContribute = new THREE.Group();
+
+    scene.add(zoneBeadwork);
+    scene.add(zoneSurvey);
+    scene.add(zoneContribute);
+
+    // Initial State
+    hideAllZones();
+
+    // --- COLORS ---
+    const METIS_BLUE = 0x0055A4;
+    const METIS_RED = 0xBF2E1A;
+    const METIS_WHITE = 0xFFFFFF;
+    const METIS_YELLOW = 0xFFD700;
+    const METIS_GREEN = 0x006400;
+
+    // ==========================================
+    // ZONE 1: BEADWORK (Polar Coordinates & Trig)
+    // ==========================================
+    let beadGroup = new THREE.Group();
+    zoneBeadwork.add(beadGroup);
+    
+    // Create the Loom/Fabric Base
+    const loomGeo = new THREE.CylinderGeometry(8, 8, 0.5, 32);
+    const loomMat = new THREE.MeshStandardMaterial({ color: 0x222222 });
+    const loom = new THREE.Mesh(loomGeo, loomMat);
+    loom.position.y = 0.25;
+    zoneBeadwork.add(loom);
+
+    function generateBeadwork(k, a) {
+        // k = number of petals (frequency), a = size (amplitude)
+        // Rose Curve: r = a * cos(k * theta)
+        
+        // Clear previous beads
+        while(beadGroup.children.length > 0){ 
+            beadGroup.remove(beadGroup.children[0]); 
+        }
+
+        const beadGeo = new THREE.SphereGeometry(0.15, 8, 8);
+        const beadCount = 300; 
+
+        for (let i = 0; i < beadCount; i++) {
+            const theta = (i / beadCount) * Math.PI * 2; // 0 to 2PI
+            
+            // Polar to Cartesian conversion
+            // r represents the distance from center determined by the cosine function
+            const r = a * Math.cos(k * theta); 
+            
+            const x = r * Math.cos(theta);
+            const z = r * Math.sin(theta); // Z is "Y" on the flat plane
+            
+            // Determine color based on position to simulate floral depth
+            let color = METIS_RED;
+            if(Math.abs(r) < a * 0.5) color = METIS_YELLOW;
+            if(Math.abs(r) > a * 0.8) color = METIS_WHITE;
+
+            const bead = new THREE.Mesh(beadGeo, new THREE.MeshStandardMaterial({ color: color }));
+            bead.position.set(x, 0.6, z);
+            beadGroup.add(bead);
+        }
+        
+        // Add a center bead
+        const centerBead = new THREE.Mesh(new THREE.SphereGeometry(0.3, 16, 16), new THREE.MeshStandardMaterial({color: METIS_BLUE}));
+        centerBead.position.set(0, 0.6, 0);
+        beadGroup.add(centerBead);
+    }
+
+    // Initialize with default
+    generateBeadwork(4, 5);
+
+    // ==========================================
+    // ZONE 2: SURVEYING (Sine Law)
+    // ==========================================
+    
+    // Create River
+    const riverGeo = new THREE.PlaneGeometry(10, 40);
+    const riverMat = new THREE.MeshStandardMaterial({ color: 0x0055A4, transparent: true, opacity: 0.8 });
+    const river = new THREE.Mesh(riverGeo, riverMat);
+    river.rotation.x = -Math.PI / 2;
+    river.position.set(0, 0.1, 0);
+    zoneSurvey.add(river);
+
+    // Create River Banks (Long narrow lots)
+    const lotGeo = new THREE.BoxGeometry(0.2, 0.2, 20);
+    for(let i = -4; i <= 4; i+=2) {
+        const lotLine = new THREE.Mesh(lotGeo, new THREE.MeshStandardMaterial({color: 0x8B4513}));
+        lotLine.position.set(i + 6, 0.2, 0); // East bank lots
+        zoneSurvey.add(lotLine);
+    }
+
+    // Survey Points (Triangulation)
+    const p1 = new THREE.Vector3(6, 0.5, 5); // Surveyor 1
+    const p2 = new THREE.Vector3(6, 0.5, -5); // Surveyor 2
+    const pTarget = new THREE.Vector3(-6, 0.5, 0); // Tree across river
+
+    function createMarker(pos, color) {
+        const mesh = new THREE.Mesh(new THREE.ConeGeometry(0.5, 1, 8), new THREE.MeshStandardMaterial({color: color}));
+        mesh.position.copy(pos);
+        zoneSurvey.add(mesh);
+        return mesh;
+    }
+
+    createMarker(p1, METIS_RED); // Point A
+    createMarker(p2, METIS_RED); // Point B
+    createMarker(pTarget, METIS_GREEN); // Point C
+
+    // Draw lines connecting them
+    const points = [p1, pTarget, p2, p1];
+    const lineGeo = new THREE.BufferGeometry().setFromPoints(points);
+    const lineMat = new THREE.LineBasicMaterial({ color: 0xffff00, linewidth: 2 });
+    const triangle = new THREE.Line(lineGeo, lineMat);
+    zoneSurvey.add(triangle);
+
+    // ==========================================
+    // ZONE 3: STUDENT CONTRIBUTION
+    // ==========================================
+    const stoneGeo = new THREE.DodecahedronGeometry(0.5);
+    const contribGroup = new THREE.Group();
+    zoneContribute.add(contribGroup);
+    
+    // Add a center cairn
+    const cairnBase = new THREE.Mesh(new THREE.CylinderGeometry(2, 3, 1, 7), new THREE.MeshStandardMaterial({color: 0x555555}));
+    cairnBase.position.y = 0.5;
+    zoneContribute.add(cairnBase);
+
+    // Function to add a stone
+    window.addStone = function() {
+        const stone = new THREE.Mesh(stoneGeo, new THREE.MeshStandardMaterial({ color: Math.random() * 0xffffff }));
+        // Random position on top of cairn
+        const angle = Math.random() * Math.PI * 2;
+        const radius = Math.random() * 1.5;
+        stone.position.set(
+            Math.cos(angle) * radius,
+            1.5 + Math.random(), 
+            Math.sin(angle) * radius
+        );
+        contribGroup.add(stone);
+    }
+
+    // ==========================================
+    // LOGIC & UI
+    // ==========================================
+
+    function hideAllZones() {
+        zoneBeadwork.visible = false;
+        zoneSurvey.visible = false;
+        zoneContribute.visible = false;
+    }
+
+    window.switchZone = function(zoneName) {
+        hideAllZones();
+        
+        // Reset active buttons
+        document.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+        const display = document.getElementById('math-display');
+        const controlsDiv = document.getElementById('dynamic-controls');
+        controlsDiv.innerHTML = ''; // Clear sliders
+
+        if (zoneName === 'beadwork') {
+            zoneBeadwork.visible = true;
+            document.getElementById('btn-bead').classList.add('active');
+            display.innerHTML = "Math 20-1 Topic: Trigonometry & Functions<br>Pattern: Rose Curve Polar Graph<br>Equation: r = a cos(k&theta;)";
+            camera.position.set(0, 15, 0); // Top down view
+            
+            // Add Controls
+            controlsDiv.innerHTML = `
+                <div class="slider-container">
+                    <label>Petals (k): <span id="val-k">4</span></label>
+                    <input type="range" min="2" max="10" step="1" value="4" id="input-k">
+                </div>
+                <div class="slider-container">
+                    <label>Size (a): <span id="val-a">5</span></label>
+                    <input type="range" min="2" max="7" step="0.5" value="5" id="input-a">
+                </div>
+            `;
+            
+            // Bind events
+            document.getElementById('input-k').addEventListener('input', (e) => {
+                document.getElementById('val-k').innerText = e.target.value;
+                generateBeadwork(e.target.value, document.getElementById('input-a').value);
+            });
+            document.getElementById('input-a').addEventListener('input', (e) => {
+                document.getElementById('val-a').innerText = e.target.value;
+                generateBeadwork(document.getElementById('input-k').value, e.target.value);
+            });
+
+        } else if (zoneName === 'survey') {
+            zoneSurvey.visible = true;
+            document.getElementById('btn-survey').classList.add('active');
+            display.innerHTML = "Math 20-1 Topic: Sine/Cosine Law<br>Task: Calculate width of Red River.<br>Given: Baseline (10m) & Angles.";
+            camera.position.set(0, 10, 15);
+            
+            controlsDiv.innerHTML = `<p>Visualizing Triangulation. Imagine surveyors measuring the baseline on the East bank to find the distance to the tree on the West bank.</p>`;
+
+        } else if (zoneName === 'contribute') {
+            zoneContribute.visible = true;
+            document.getElementById('btn-contrib').classList.add('active');
+            display.innerHTML = "Community Knowledge Cairn.<br>Add a 'stone' to represent a math concept you found in your own culture.";
+            camera.position.set(0, 5, 8);
+            
+            controlsDiv.innerHTML = `<button onclick="addStone()" style="width:100%">Place Stone</button>`;
+        }
+    }
+
+    // Default load
+    window.switchZone('beadwork');
+
+    // --- ANIMATION LOOP ---
+    function animate() {
+        requestAnimationFrame(animate);
+        controls.update();
+        
+        // Gentle rotation for beadwork to see 3D effect
+        if(zoneBeadwork.visible) {
+            beadGroup.rotation.y += 0.002;
+        }
+
+        renderer.render(scene, camera);
+    }
+    
+    // Handle Window Resize
+    window.addEventListener('resize', () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    animate();
+</script>
+
+<div class="experience-credit">
+    Designed by <span class="designer">Amarah Ishaque</span><br>
+    EDU596 Métis Foundational Knowledge
+</div>
+</body>
+</html>

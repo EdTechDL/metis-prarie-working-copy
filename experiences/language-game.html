@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>L'infiniti Ceinture - Learn Michif</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;700&display=swap');
+
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #050510;
+            font-family: 'Montserrat', sans-serif;
+            color: white;
+            user-select: none;
+        }
+
+        #canvas-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        /* Glassmorphism UI */
+        #ui-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+            pointer-events: none; /* Let clicks pass through to 3D */
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 40px;
+            box-sizing: border-box;
+        }
+
+        header {
+            text-align: left;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            text-shadow: 0 0 20px rgba(255,255,255,0.5);
+        }
+
+        h1 { margin: 0; font-size: 1.5rem; font-weight: 700; }
+        h2 { margin: 0; font-size: 0.8rem; font-weight: 300; opacity: 0.7; }
+
+        #score-board {
+            position: absolute;
+            top: 40px;
+            right: 40px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            padding: 15px 30px;
+            border-radius: 30px;
+            border: 1px solid rgba(255,255,255,0.1);
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+
+        #word-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            opacity: 0;
+        }
+
+        .term-card {
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(20px);
+            padding: 40px 60px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 0 50px rgba(0,0,0,0.5);
+        }
+
+        .english-term { font-size: 1.5rem; color: #aaa; margin-bottom: 10px; }
+        .michif-term { font-size: 3rem; font-weight: 700; color: #fff; text-shadow: 0 0 30px rgba(255, 255, 255, 0.8); }
+
+        /* Custom Cursor */
+        .cursor-ring {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            border-radius: 50%;
+            pointer-events: none;
+            transform: translate(-50%, -50%);
+            z-index: 100;
+            transition: width 0.2s, height 0.2s, background 0.2s;
+        }
+        
+        .cursor-dot {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background: white;
+            border-radius: 50%;
+            pointer-events: none;
+            transform: translate(-50%, -50%);
+            z-index: 101;
+        }
+
+        #intro {
+            position: absolute;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.9rem;
+            opacity: 0.6;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse { 0% { opacity: 0.4; } 50% { opacity: 0.8; } 100% { opacity: 0.4; } }
+
+        #back-btn {
+            position: absolute;
+            top: 40px;
+            left: 40px;
+            padding: 12px 20px;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 25px;
+            color: white;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            z-index: 100;
+            pointer-events: auto;
+            font-family: 'Montserrat', sans-serif;
+            letter-spacing: 1px;
+        }
+        #back-btn:hover {
+            background: rgba(50, 50, 50, 0.7);
+            border-color: rgba(255, 255, 255, 0.4);
+            transform: scale(1.02);
+        }
+        #back-btn svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        /* Credit footer */
+        .experience-credit {
+            position: fixed;
+            bottom: 15px;
+            right: 20px;
+            font-size: 0.7rem;
+            color: rgba(255, 255, 255, 0.4);
+            text-align: right;
+            pointer-events: none;
+            z-index: 100;
+        }
+        .experience-credit .designer {
+            color: rgba(255, 215, 0, 0.6);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Back Button -->
+    <button id="back-btn" onclick="window.location.href='../index.html'">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M19 12H5M12 19l-7-7 7-7"/>
+        </svg>
+        Back to Prairie
+    </button>
+
+    <!-- UI Overlay -->
+    <div id="ui-layer">
+        <header>
+            <h1>L'esprit de Michif</h1>
+            <h2>The Spirit of Language</h2>
+        </header>
+        <div id="score-board">Learned: <span id="score">0</span></div>
+        <div id="intro">Click the floating Spirits to reveal the Michif word</div>
+        
+        <div id="word-overlay">
+            <div class="term-card">
+                <div class="english-term" id="eng-text">Hello</div>
+                <div class="michif-term" id="michif-text">Tánishi</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Cursor Elements -->
+    <div class="cursor-ring" id="cursor-ring"></div>
+    <div class="cursor-dot" id="cursor-dot"></div>
+
+    <!-- 3D Container -->
+    <div id="canvas-container"></div>
+
+    <!-- Three.js Import Map -->
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+        import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+        import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+
+        // --- MICHIF DICTIONARY (Updated with Classroom Terms) ---
+        const vocabulary = [
+            // Original Cultural Terms
+            { eng: "Hello", michif: "Tánishi", color: 0xff0000 },
+            { eng: "Thank you", michif: "Maarsii", color: 0x00ff00 },
+            { eng: "Friend", michif: "Li Nami", color: 0x00aaff },
+            { eng: "Wolf", michif: "Li Loo", color: 0xffaa00 },
+            { eng: "Moon", michif: "La Liin", color: 0xffffff },
+            { eng: "Sun", michif: "Li Solay", color: 0xffff00 },
+            { eng: "River", michif: "La Rivyair", color: 0x0000ff },
+            { eng: "Sash", michif: "La Ceinture", color: 0xff0044 },
+            { eng: "Bison", michif: "Li Bufloo", color: 0x8B4513 },
+
+            // NEW: Student / Classroom Terms
+            { eng: "Book", michif: "Li Liv", color: 0xEEEEEE },       // White/Paper
+            { eng: "School", michif: "L'ikol", color: 0xFF2222 },     // Red
+            { eng: "Paper", michif: "Li Papyii", color: 0xFFD700 },   // Yellow
+            { eng: "To Learn", michif: "Kishkaym", color: 0x32CD32 }, // Green (Growth)
+            { eng: "Pen", michif: "La Plimm", color: 0x00FFFF }       // Cyan (Ink)
+        ];
+
+        // --- CONFIGURATION & GLOBALS ---
+        const SCENE_CONFIG = {
+            fogColor: 0x050510,
+            groundColor: 0x0a0a1a,
+            speed: 0.2
+        };
+
+        let scene, camera, renderer, composer;
+        let particles, stars, sashPath;
+        let interactables = [];
+        let learnedCount = 0;
+        
+        // Mouse interaction
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2();
+        
+        // --- INITIALIZATION ---
+        function init() {
+            const container = document.getElementById('canvas-container');
+
+            // Scene setup
+            scene = new THREE.Scene();
+            scene.fog = new THREE.FogExp2(SCENE_CONFIG.fogColor, 0.015);
+            scene.background = new THREE.Color(SCENE_CONFIG.fogColor);
+
+            // Camera
+            camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(0, 3, 12);
+            
+            // Renderer
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.toneMapping = THREE.ACESFilmicToneMapping;
+            renderer.toneMappingExposure = 1.2;
+            container.appendChild(renderer.domElement);
+
+            // Post-Processing (BLOOM - The secret to high-end visuals)
+            const renderScene = new RenderPass(scene, camera);
+            const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
+            bloomPass.threshold = 0;
+            bloomPass.strength = 2.0; // High bloom for magical effect
+            bloomPass.radius = 0.5;
+
+            composer = new EffectComposer(renderer);
+            composer.addPass(renderScene);
+            composer.addPass(bloomPass);
+
+            // Lighting
+            const ambientLight = new THREE.AmbientLight(0x404040, 2);
+            scene.add(ambientLight);
+
+            const moonLight = new THREE.DirectionalLight(0xaaccff, 2);
+            moonLight.position.set(5, 10, 5);
+            scene.add(moonLight);
+
+            // World Generation
+            createStarField();
+            createForest();
+            createSashPath();
+            spawnFloatingWords();
+
+            // Listeners
+            window.addEventListener('resize', onWindowResize);
+            window.addEventListener('mousemove', onMouseMove);
+            window.addEventListener('click', onMouseClick);
+
+            // Custom Cursor Logic
+            document.addEventListener('mousemove', (e) => {
+                const ring = document.getElementById('cursor-ring');
+                const dot = document.getElementById('cursor-dot');
+                
+                // Slight delay for ring to create "heavy" feel
+                setTimeout(() => {
+                    ring.style.left = e.clientX + 'px';
+                    ring.style.top = e.clientY + 'px';
+                }, 50);
+                
+                dot.style.left = e.clientX + 'px';
+                dot.style.top = e.clientY + 'px';
+            });
+
+            animate();
+        }
+
+        // --- WORLD BUILDING ---
+
+        function createStarField() {
+            const geometry = new THREE.BufferGeometry();
+            const count = 2000;
+            const posArray = new Float32Array(count * 3);
+            
+            for(let i = 0; i < count * 3; i++) {
+                posArray[i] = (Math.random() - 0.5) * 100; // Spread wide
+            }
+            
+            geometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+            
+            // Shader material for twinkling stars
+            const material = new THREE.PointsMaterial({
+                size: 0.05,
+                color: 0xffffff,
+                transparent: true,
+                opacity: 0.8
+            });
+            
+            stars = new THREE.Points(geometry, material);
+            scene.add(stars);
+        }
+
+        function createForest() {
+            // Low Poly Trees using InstancedMesh for performance
+            const treeGeo = new THREE.ConeGeometry(0.8, 3, 4); // 4 segments = pyramid look
+            const treeMat = new THREE.MeshStandardMaterial({ 
+                color: 0x1a2b3c, // Dark blue/green
+                roughness: 0.2,
+                metalness: 0.1,
+                flatShading: true 
+            });
+
+            const count = 300;
+            const mesh = new THREE.InstancedMesh(treeGeo, treeMat, count);
+            
+            const dummy = new THREE.Object3D();
+            
+            for (let i = 0; i < count; i++) {
+                // Keep center path clear
+                let x = (Math.random() - 0.5) * 60;
+                if (Math.abs(x) < 4) x += (x > 0 ? 4 : -4); 
+                
+                const z = (Math.random() - 0.5) * 100;
+                const s = Math.random() * 0.5 + 0.5; // Scale variation
+
+                dummy.position.set(x, 0, z);
+                dummy.scale.set(s, s, s);
+                dummy.rotation.y = Math.random() * Math.PI;
+                dummy.updateMatrix();
+                mesh.setMatrixAt(i, dummy.matrix);
+            }
+            
+            scene.add(mesh);
+
+            // Add Ground Reflection (Mirror-like ice)
+            const planeGeo = new THREE.PlaneGeometry(100, 100);
+            const planeMat = new THREE.MeshStandardMaterial({ 
+                color: 0x050510,
+                roughness: 0.1,
+                metalness: 0.8
+            });
+            const ground = new THREE.Mesh(planeGeo, planeMat);
+            ground.rotation.x = -Math.PI / 2;
+            ground.position.y = -1.5;
+            scene.add(ground);
+        }
+
+        function createSashPath() {
+            // Procedurally generate the woven sash look on the ground
+            const points = [];
+            for (let i = -50; i < 50; i++) {
+                points.push(new THREE.Vector3(Math.sin(i * 0.2) * 2, -1, i));
+            }
+            const path = new THREE.CatmullRomCurve3(points);
+            
+            const tubeGeo = new THREE.TubeGeometry(path, 100, 0.2, 8, false);
+            
+            // Custom Shader for the Sash to make it look woven/glowing
+            const sashMat = new THREE.MeshStandardMaterial({
+                color: 0xffffff,
+                emissive: 0x444444,
+                roughness: 0.4,
+                metalness: 0.6,
+                wireframe: true // Artistic choice: wireframe looks like threads
+            });
+
+            sashPath = new THREE.Mesh(tubeGeo, sashMat);
+            scene.add(sashPath);
+        }
+
+        function spawnFloatingWords() {
+            // Create interactable orbs
+            const geometry = new THREE.IcosahedronGeometry(0.6, 0);
+
+            for (let i = 0; i < 6; i++) {
+                createSingleOrb(geometry, i);
+            }
+        }
+
+        function createSingleOrb(geometry, index) {
+            const wordData = vocabulary[Math.floor(Math.random() * vocabulary.length)];
+                
+            const material = new THREE.MeshStandardMaterial({
+                color: wordData.color,
+                emissive: wordData.color,
+                emissiveIntensity: 0.5,
+                roughness: 0.1,
+                metalness: 0.5,
+                flatShading: true
+            });
+
+            const orb = new THREE.Mesh(geometry, material);
+            
+            // Position randomly ahead
+            orb.position.set(
+                (Math.random() - 0.5) * 6,
+                Math.random() * 2 + 1, // Height
+                -10 - (index * 12) // Distance spacing
+            );
+
+            orb.userData = { 
+                type: 'word', 
+                data: wordData,
+                originalY: orb.position.y,
+                speed: Math.random() * 0.02 + 0.01
+            };
+
+            scene.add(orb);
+            interactables.push(orb);
+
+            // Add a point light to the orb so it lights up nearby trees
+            const light = new THREE.PointLight(wordData.color, 2, 8);
+            orb.add(light);
+        }
+
+        function createParticleExplosion(position, color) {
+            const particleCount = 50;
+            const geometry = new THREE.BufferGeometry();
+            const positions = [];
+            const velocities = [];
+
+            for (let i = 0; i < particleCount; i++) {
+                positions.push(position.x, position.y, position.z);
+                velocities.push(
+                    (Math.random() - 0.5) * 0.5,
+                    (Math.random() - 0.5) * 0.5,
+                    (Math.random() - 0.5) * 0.5
+                );
+            }
+
+            geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+            
+            const material = new THREE.PointsMaterial({
+                color: color,
+                size: 0.1,
+                transparent: true,
+                opacity: 1
+            });
+
+            const particleSystem = new THREE.Points(geometry, material);
+            particleSystem.userData = { velocities: velocities, life: 1.0 };
+            
+            scene.add(particleSystem);
+            
+            // Simple particle manager
+            if(!window.particleSystems) window.particleSystems = [];
+            window.particleSystems.push(particleSystem);
+        }
+
+        // --- INTERACTION ---
+
+        function onMouseMove(event) {
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+            // Hover effects
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObjects(interactables);
+
+            const cursorRing = document.getElementById('cursor-ring');
+            
+            if (intersects.length > 0) {
+                document.body.style.cursor = 'pointer';
+                cursorRing.style.width = '60px';
+                cursorRing.style.height = '60px';
+                cursorRing.style.borderColor = 'rgba(255,255,255,1)';
+                cursorRing.style.background = 'rgba(255,255,255,0.1)';
+            } else {
+                document.body.style.cursor = 'default';
+                cursorRing.style.width = '40px';
+                cursorRing.style.height = '40px';
+                cursorRing.style.borderColor = 'rgba(255,255,255,0.5)';
+                cursorRing.style.background = 'transparent';
+            }
+        }
+
+        function onMouseClick() {
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObjects(interactables);
+
+            if (intersects.length > 0) {
+                const object = intersects[0].object;
+                const data = object.userData.data;
+
+                // 1. Particle Effect
+                createParticleExplosion(object.position, data.color);
+
+                // 2. UI Update
+                showTranslation(data);
+
+                // 3. Reset Object (Move it far back and change the word)
+                object.position.z -= 60;
+                object.position.x = (Math.random() - 0.5) * 6;
+                
+                // Pick a new random word for this orb to represent next time
+                const newWord = vocabulary[Math.floor(Math.random() * vocabulary.length)];
+                object.userData.data = newWord;
+                object.material.color.setHex(newWord.color);
+                object.material.emissive.setHex(newWord.color);
+                object.children[0].color.setHex(newWord.color); // Update light color
+
+                // 4. Score
+                learnedCount++;
+                document.getElementById('score').innerText = learnedCount;
+            }
+        }
+
+        function showTranslation(data) {
+            const overlay = document.getElementById('word-overlay');
+            const eng = document.getElementById('eng-text');
+            const michif = document.getElementById('michif-text');
+
+            eng.innerText = data.eng;
+            michif.innerText = data.michif;
+            michif.style.color = '#' + new THREE.Color(data.color).getHexString();
+
+            overlay.style.opacity = '1';
+            
+            // Auto hide after 3 seconds
+            if(window.timer) clearTimeout(window.timer);
+            window.timer = setTimeout(() => {
+                overlay.style.opacity = '0';
+            }, 3000);
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            composer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        // --- ANIMATION LOOP ---
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            const time = Date.now() * 0.001;
+
+            // Move Stars (Parallax)
+            stars.rotation.y += 0.0005;
+
+            // Float and Move Words
+            interactables.forEach(orb => {
+                // Bobbing motion
+                orb.position.y = orb.userData.originalY + Math.sin(time * 2) * 0.2;
+                orb.rotation.x += 0.01;
+                orb.rotation.y += 0.02;
+
+                // Move towards camera
+                orb.position.z += SCENE_CONFIG.speed;
+
+                // Loop logic
+                if (orb.position.z > 5) {
+                    orb.position.z = -70; // Reset far back
+                    orb.position.x = (Math.random() - 0.5) * 6;
+                    
+                    // Shuffle word on loop reset too
+                    const newWord = vocabulary[Math.floor(Math.random() * vocabulary.length)];
+                    orb.userData.data = newWord;
+                    orb.material.color.setHex(newWord.color);
+                    orb.material.emissive.setHex(newWord.color);
+                    orb.children[0].color.setHex(newWord.color);
+                }
+            });
+
+            // Animate Particles
+            if(window.particleSystems) {
+                window.particleSystems.forEach((ps, index) => {
+                    ps.userData.life -= 0.02;
+                    const positions = ps.geometry.attributes.position.array;
+                    
+                    for(let i = 0; i < positions.length; i+=3) {
+                        positions[i] += ps.userData.velocities[i/3 * 3];
+                        positions[i+1] += ps.userData.velocities[i/3 * 3 + 1];
+                        positions[i+2] += ps.userData.velocities[i/3 * 3 + 2];
+                    }
+                    ps.geometry.attributes.position.needsUpdate = true;
+                    ps.material.opacity = ps.userData.life;
+
+                    if(ps.userData.life <= 0) {
+                        scene.remove(ps);
+                        window.particleSystems.splice(index, 1);
+                    }
+                });
+            }
+
+            // Animate Sash (Flowing effect)
+            if (sashPath) {
+                sashPath.position.z += SCENE_CONFIG.speed;
+                if (sashPath.position.z > 2) {
+                    sashPath.position.z = 0; // Infinite loop hack
+                }
+            }
+
+            // Camera subtle sway
+            camera.position.x = Math.sin(time * 0.5) * 0.5;
+            camera.lookAt(0, 0, -10);
+
+            // Render with Bloom
+            composer.render();
+        }
+
+        init();
+    </script>
+
+    <div class="experience-credit">
+        Designed by <span class="designer">Amarah Ishaque</span><br>
+        EDU596 Métis Foundational Knowledge
+    </div>
+</body>
+</html>

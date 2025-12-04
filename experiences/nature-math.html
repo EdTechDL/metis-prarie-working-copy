@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Li Nòmb dan la Natiir - Numbers in Nature</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Inter:wght@300;400;600&display=swap');
+
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: #0a0a15;
+            font-family: 'Inter', sans-serif;
+            color: white;
+        }
+
+        /* Back Button */
+        .back-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+            background: rgba(255, 215, 0, 0.9);
+            color: #1a1a2e;
+            border: 2px solid #ffd700;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'Cinzel', serif;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .back-button:hover {
+            background: #bf2e1a;
+            color: white;
+            border-color: #bf2e1a;
+            transform: translateX(-3px);
+        }
+
+        #canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        /* UI Panel */
+        #ui-panel {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            max-width: 600px;
+            background: rgba(10, 10, 20, 0.9);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            border-radius: 12px;
+            padding: 25px;
+            z-index: 100;
+            text-align: center;
+        }
+
+        #ui-panel h1 {
+            font-family: 'Cinzel', serif;
+            font-size: 1.6rem;
+            color: #ffd700;
+            margin: 0 0 5px 0;
+        }
+
+        #ui-panel h2 {
+            font-size: 0.9rem;
+            color: #888;
+            font-weight: normal;
+            font-style: italic;
+            margin: 0 0 15px 0;
+        }
+
+        #description {
+            font-size: 0.95rem;
+            line-height: 1.6;
+            color: #ccc;
+            margin-bottom: 20px;
+        }
+
+        .pattern-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 15px;
+        }
+
+        .pattern-btn {
+            background: rgba(255, 215, 0, 0.1);
+            border: 1px solid rgba(255, 215, 0, 0.4);
+            color: #ffd700;
+            padding: 10px 18px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.3s ease;
+        }
+
+        .pattern-btn:hover {
+            background: rgba(255, 215, 0, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .pattern-btn.active {
+            background: #ffd700;
+            color: #1a1a2e;
+            font-weight: bold;
+        }
+
+        #math-info {
+            background: rgba(255, 255, 255, 0.05);
+            border-left: 3px solid #ffd700;
+            padding: 12px 15px;
+            text-align: left;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            color: #aaa;
+        }
+
+        #math-info strong {
+            color: #ffd700;
+        }
+
+        /* Header info */
+        #header-info {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            text-align: right;
+            z-index: 100;
+        }
+
+        #header-info h1 {
+            font-family: 'Cinzel', serif;
+            font-size: 1.8rem;
+            color: #ffd700;
+            margin: 0;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+        }
+
+        #header-info p {
+            font-size: 0.85rem;
+            color: #888;
+            margin: 5px 0 0 0;
+            font-style: italic;
+        }
+
+        /* Credit footer */
+        .experience-credit {
+            position: fixed;
+            bottom: 15px;
+            right: 20px;
+            font-size: 0.7rem;
+            color: rgba(255, 255, 255, 0.4);
+            text-align: right;
+            pointer-events: none;
+            z-index: 100;
+        }
+        .experience-credit .designer {
+            color: rgba(255, 215, 0, 0.6);
+        }
+    </style>
+</head>
+<body>
+
+<a href="../index.html" class="back-button">← Back to Prairie</a>
+
+<div id="header-info">
+    <h1>Li Nòmb dan la Natiir</h1>
+    <p>Numbers in Nature</p>
+</div>
+
+<div id="canvas-container"></div>
+
+<div id="ui-panel">
+    <h1>Sacred Patterns</h1>
+    <h2>The Mathematics Woven Through Creation</h2>
+
+    <p id="description">
+        The Métis saw mathematics everywhere in nature—in the spiral of a snail shell, the branching of rivers,
+        the patterns of flowers. These patterns guided their beadwork, their understanding of the land,
+        and their connection to the natural world.
+    </p>
+
+    <div class="pattern-buttons">
+        <button class="pattern-btn active" onclick="showPattern('fibonacci')">Fibonacci Spiral</button>
+        <button class="pattern-btn" onclick="showPattern('fractal')">River Fractals</button>
+        <button class="pattern-btn" onclick="showPattern('golden')">Golden Ratio</button>
+        <button class="pattern-btn" onclick="showPattern('symmetry')">Floral Symmetry</button>
+    </div>
+
+    <div id="math-info">
+        <strong>Fibonacci Spiral:</strong> Found in sunflowers, pinecones, and the curl of fiddlehead ferns.
+        Each number is the sum of the two before it: 1, 1, 2, 3, 5, 8, 13, 21...
+    </div>
+</div>
+
+<script type="importmap">
+{
+    "imports": {
+        "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+    }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+// Scene setup
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x0a0a15);
+
+const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+camera.position.set(0, 8, 15);
+
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.05;
+controls.maxPolarAngle = Math.PI / 2;
+
+// Lighting
+const ambientLight = new THREE.AmbientLight(0x404060, 0.5);
+scene.add(ambientLight);
+
+const mainLight = new THREE.DirectionalLight(0xffffff, 0.8);
+mainLight.position.set(10, 20, 10);
+scene.add(mainLight);
+
+const goldLight = new THREE.PointLight(0xffd700, 1, 50);
+goldLight.position.set(0, 5, 0);
+scene.add(goldLight);
+
+// Pattern groups
+const fibonacciGroup = new THREE.Group();
+const fractalGroup = new THREE.Group();
+const goldenGroup = new THREE.Group();
+const symmetryGroup = new THREE.Group();
+
+scene.add(fibonacciGroup);
+scene.add(fractalGroup);
+scene.add(goldenGroup);
+scene.add(symmetryGroup);
+
+// Materials
+const goldMat = new THREE.MeshStandardMaterial({
+    color: 0xffd700,
+    metalness: 0.6,
+    roughness: 0.3,
+    emissive: 0xffd700,
+    emissiveIntensity: 0.1
+});
+
+const redMat = new THREE.MeshStandardMaterial({
+    color: 0xbf2e1a,
+    metalness: 0.3,
+    roughness: 0.5
+});
+
+const blueMat = new THREE.MeshStandardMaterial({
+    color: 0x0055a4,
+    metalness: 0.3,
+    roughness: 0.5
+});
+
+const greenMat = new THREE.MeshStandardMaterial({
+    color: 0x228b22,
+    metalness: 0.2,
+    roughness: 0.6
+});
+
+const whiteMat = new THREE.MeshStandardMaterial({
+    color: 0xffffff,
+    metalness: 0.1,
+    roughness: 0.8
+});
+
+// ==========================================
+// FIBONACCI SPIRAL
+// ==========================================
+function createFibonacciSpiral() {
+    const fib = [1, 1, 2, 3, 5, 8, 13, 21];
+    let x = 0, y = 0;
+    let direction = 0; // 0=right, 1=up, 2=left, 3=down
+
+    // Create squares for each Fibonacci number
+    fib.forEach((size, index) => {
+        const geo = new THREE.BoxGeometry(size * 0.3, 0.1, size * 0.3);
+        const colors = [goldMat, redMat, blueMat, greenMat];
+        const square = new THREE.Mesh(geo, colors[index % 4]);
+
+        // Position based on spiral
+        let offsetX = 0, offsetZ = 0;
+        if (direction === 0) offsetX = size * 0.15;
+        else if (direction === 1) offsetZ = -size * 0.15;
+        else if (direction === 2) offsetX = -size * 0.15;
+        else offsetZ = size * 0.15;
+
+        square.position.set(x + offsetX, 0.05, y + offsetZ);
+        fibonacciGroup.add(square);
+
+        // Update position for next square
+        const dirs = [[1, 0], [0, -1], [-1, 0], [0, 1]];
+        x += dirs[direction][0] * size * 0.3;
+        y += dirs[direction][1] * size * 0.3;
+        direction = (direction + 1) % 4;
+    });
+
+    // Create spiral curve
+    const spiralPoints = [];
+    const goldenAngle = Math.PI * (3 - Math.sqrt(5));
+    for (let i = 0; i < 200; i++) {
+        const angle = i * goldenAngle;
+        const radius = Math.sqrt(i) * 0.3;
+        spiralPoints.push(new THREE.Vector3(
+            Math.cos(angle) * radius,
+            0.2,
+            Math.sin(angle) * radius
+        ));
+    }
+
+    const spiralGeo = new THREE.BufferGeometry().setFromPoints(spiralPoints);
+    const spiralMat = new THREE.LineBasicMaterial({ color: 0xffd700, linewidth: 2 });
+    const spiral = new THREE.Line(spiralGeo, spiralMat);
+    fibonacciGroup.add(spiral);
+
+    // Add seed points (like sunflower seeds)
+    for (let i = 0; i < 150; i++) {
+        const angle = i * goldenAngle;
+        const radius = Math.sqrt(i) * 0.25;
+        const seedGeo = new THREE.SphereGeometry(0.08, 8, 8);
+        const seed = new THREE.Mesh(seedGeo, i % 2 === 0 ? goldMat : redMat);
+        seed.position.set(
+            Math.cos(angle) * radius,
+            0.15 + Math.sin(i * 0.1) * 0.05,
+            Math.sin(angle) * radius
+        );
+        fibonacciGroup.add(seed);
+    }
+}
+
+// ==========================================
+// FRACTAL RIVER SYSTEM
+// ==========================================
+function createFractalRiver(startX, startZ, length, angle, depth, group) {
+    if (depth === 0 || length < 0.3) return;
+
+    const endX = startX + Math.cos(angle) * length;
+    const endZ = startZ + Math.sin(angle) * length;
+
+    // Create river segment
+    const points = [
+        new THREE.Vector3(startX, 0.1, startZ),
+        new THREE.Vector3(endX, 0.1, endZ)
+    ];
+
+    const riverGeo = new THREE.BufferGeometry().setFromPoints(points);
+    const riverMat = new THREE.LineBasicMaterial({
+        color: new THREE.Color().setHSL(0.55, 0.7, 0.3 + depth * 0.1),
+        linewidth: depth
+    });
+    const river = new THREE.Line(riverGeo, riverMat);
+    group.add(river);
+
+    // Add water effect spheres
+    const waterGeo = new THREE.SphereGeometry(0.05 + depth * 0.02, 8, 8);
+    const waterMat = new THREE.MeshStandardMaterial({
+        color: 0x0055a4,
+        transparent: true,
+        opacity: 0.6,
+        metalness: 0.8,
+        roughness: 0.2
+    });
+
+    for (let t = 0; t < 1; t += 0.3) {
+        const water = new THREE.Mesh(waterGeo, waterMat);
+        water.position.set(
+            startX + (endX - startX) * t,
+            0.1,
+            startZ + (endZ - startZ) * t
+        );
+        group.add(water);
+    }
+
+    // Branch into two smaller rivers
+    const branchAngle = 0.5;
+    createFractalRiver(endX, endZ, length * 0.7, angle + branchAngle, depth - 1, group);
+    createFractalRiver(endX, endZ, length * 0.7, angle - branchAngle, depth - 1, group);
+}
+
+function setupFractalRiver() {
+    createFractalRiver(0, 5, 3, -Math.PI / 2, 5, fractalGroup);
+
+    // Add land masses
+    const landGeo = new THREE.PlaneGeometry(15, 15);
+    const landMat = new THREE.MeshStandardMaterial({
+        color: 0x3d5c3d,
+        roughness: 0.9
+    });
+    const land = new THREE.Mesh(landGeo, landMat);
+    land.rotation.x = -Math.PI / 2;
+    land.position.y = 0;
+    fractalGroup.add(land);
+}
+
+// ==========================================
+// GOLDEN RATIO
+// ==========================================
+function createGoldenRatio() {
+    const phi = (1 + Math.sqrt(5)) / 2; // Golden ratio ≈ 1.618
+
+    // Golden rectangle
+    const rectGeo = new THREE.BoxGeometry(phi * 2, 0.05, 2);
+    const rect = new THREE.Mesh(rectGeo, goldMat);
+    rect.position.y = 0.025;
+    goldenGroup.add(rect);
+
+    // Dividing line
+    const linePoints = [
+        new THREE.Vector3(phi * 2 - 2, 0.1, -1),
+        new THREE.Vector3(phi * 2 - 2, 0.1, 1)
+    ];
+    const lineGeo = new THREE.BufferGeometry().setFromPoints(linePoints);
+    const lineMat = new THREE.LineBasicMaterial({ color: 0xffffff });
+    const line = new THREE.Line(lineGeo, lineMat);
+    goldenGroup.add(line);
+
+    // Create nested golden rectangles
+    let scale = 1;
+    let posX = 0, posZ = 0;
+    let dir = 0;
+
+    for (let i = 0; i < 8; i++) {
+        const size = scale / phi;
+        const squareGeo = new THREE.BoxGeometry(size, 0.02 + i * 0.01, size);
+        const colors = [redMat, blueMat, greenMat, whiteMat];
+        const square = new THREE.Mesh(squareGeo, colors[i % 4]);
+
+        square.position.set(posX, 0.1 + i * 0.02, posZ);
+        goldenGroup.add(square);
+
+        // Update for next iteration
+        scale = size;
+        const offset = scale / 2;
+        const dirs = [[1, 0], [0, 1], [-1, 0], [0, -1]];
+        posX += dirs[dir][0] * offset;
+        posZ += dirs[dir][1] * offset;
+        dir = (dir + 1) % 4;
+    }
+
+    // Add phi symbol representation with spheres
+    const phiPoints = [];
+    for (let i = 0; i < 50; i++) {
+        const t = i / 50;
+        const angle = t * Math.PI * 4;
+        const r = t * 2;
+        phiPoints.push(new THREE.Vector3(
+            Math.cos(angle) * r + 3,
+            0.3,
+            Math.sin(angle) * r
+        ));
+    }
+
+    phiPoints.forEach((point, i) => {
+        const sphereGeo = new THREE.SphereGeometry(0.05, 8, 8);
+        const sphere = new THREE.Mesh(sphereGeo, i % 2 === 0 ? goldMat : redMat);
+        sphere.position.copy(point);
+        goldenGroup.add(sphere);
+    });
+}
+
+// ==========================================
+// FLORAL SYMMETRY
+// ==========================================
+function createFloralSymmetry() {
+    const petalCount = 8; // Métis beadwork often uses 8-fold symmetry
+
+    // Create central flower
+    for (let layer = 0; layer < 3; layer++) {
+        const layerPetals = petalCount - layer * 2;
+        const layerRadius = 1.5 - layer * 0.4;
+        const layerHeight = layer * 0.15;
+
+        for (let i = 0; i < layerPetals; i++) {
+            const angle = (i / layerPetals) * Math.PI * 2;
+
+            // Petal shape
+            const petalGeo = new THREE.SphereGeometry(0.4 - layer * 0.1, 16, 16);
+            const colors = [redMat, blueMat, goldMat];
+            const petal = new THREE.Mesh(petalGeo, colors[layer]);
+            petal.scale.set(1, 0.3, 2);
+            petal.position.set(
+                Math.cos(angle) * layerRadius,
+                layerHeight + 0.2,
+                Math.sin(angle) * layerRadius
+            );
+            petal.rotation.y = -angle;
+            symmetryGroup.add(petal);
+        }
+    }
+
+    // Center of flower
+    const centerGeo = new THREE.SphereGeometry(0.5, 32, 32);
+    const center = new THREE.Mesh(centerGeo, goldMat);
+    center.position.y = 0.5;
+    symmetryGroup.add(center);
+
+    // Add small beads around center
+    for (let ring = 1; ring <= 3; ring++) {
+        const beadCount = ring * 6;
+        for (let i = 0; i < beadCount; i++) {
+            const angle = (i / beadCount) * Math.PI * 2;
+            const beadGeo = new THREE.SphereGeometry(0.08, 8, 8);
+            const bead = new THREE.Mesh(beadGeo, ring % 2 === 0 ? whiteMat : redMat);
+            bead.position.set(
+                Math.cos(angle) * ring * 0.2,
+                0.55,
+                Math.sin(angle) * ring * 0.2
+            );
+            symmetryGroup.add(bead);
+        }
+    }
+
+    // Create surrounding smaller flowers (4-fold symmetry)
+    const surroundPositions = [
+        [3, 0], [-3, 0], [0, 3], [0, -3],
+        [2.1, 2.1], [-2.1, 2.1], [2.1, -2.1], [-2.1, -2.1]
+    ];
+
+    surroundPositions.forEach(([x, z]) => {
+        const miniFlower = new THREE.Group();
+
+        // 4 petals
+        for (let i = 0; i < 4; i++) {
+            const angle = (i / 4) * Math.PI * 2 + Math.PI / 4;
+            const petalGeo = new THREE.SphereGeometry(0.2, 12, 12);
+            const petal = new THREE.Mesh(petalGeo, i % 2 === 0 ? redMat : blueMat);
+            petal.scale.set(1, 0.3, 1.5);
+            petal.position.set(Math.cos(angle) * 0.3, 0.1, Math.sin(angle) * 0.3);
+            petal.rotation.y = -angle;
+            miniFlower.add(petal);
+        }
+
+        // Center
+        const miniCenter = new THREE.Mesh(
+            new THREE.SphereGeometry(0.15, 16, 16),
+            goldMat
+        );
+        miniCenter.position.y = 0.15;
+        miniFlower.add(miniCenter);
+
+        miniFlower.position.set(x, 0, z);
+        symmetryGroup.add(miniFlower);
+    });
+
+    // Ground plane with pattern
+    const groundGeo = new THREE.CircleGeometry(5, 64);
+    const groundMat = new THREE.MeshStandardMaterial({
+        color: 0x1a1a2e,
+        roughness: 0.9
+    });
+    const ground = new THREE.Mesh(groundGeo, groundMat);
+    ground.rotation.x = -Math.PI / 2;
+    ground.position.y = -0.01;
+    symmetryGroup.add(ground);
+}
+
+// Initialize all patterns
+createFibonacciSpiral();
+setupFractalRiver();
+createGoldenRatio();
+createFloralSymmetry();
+
+// Hide all except default
+fractalGroup.visible = false;
+goldenGroup.visible = false;
+symmetryGroup.visible = false;
+
+// Pattern info texts
+const patternInfo = {
+    fibonacci: `<strong>Fibonacci Spiral:</strong> Found in sunflowers, pinecones, and the curl of fiddlehead ferns.
+        Each number is the sum of the two before it: 1, 1, 2, 3, 5, 8, 13, 21... The Métis saw these patterns
+        in the prairie flowers they used for medicine and dyes.`,
+    fractal: `<strong>River Fractals:</strong> The Red River and its tributaries branch in self-similar patterns—
+        each smaller branch mirrors the shape of the larger river system. The Métis used this knowledge
+        for navigation and understanding how water flows across the land.`,
+    golden: `<strong>Golden Ratio (φ ≈ 1.618):</strong> This divine proportion appears throughout nature—in shells,
+        flowers, and even the human body. Métis artisans intuitively used these proportions in their crafts,
+        creating designs that feel naturally beautiful to the eye.`,
+    symmetry: `<strong>Floral Symmetry:</strong> The 8-fold and 4-fold symmetry in Métis beadwork mirrors
+        the patterns found in prairie flowers. This radial symmetry—where petals repeat around a center—
+        guided the stunning floral designs that became a Métis trademark.`
+};
+
+// Pattern switching
+window.showPattern = function(pattern) {
+    // Update visibility
+    fibonacciGroup.visible = pattern === 'fibonacci';
+    fractalGroup.visible = pattern === 'fractal';
+    goldenGroup.visible = pattern === 'golden';
+    symmetryGroup.visible = pattern === 'symmetry';
+
+    // Update buttons
+    document.querySelectorAll('.pattern-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    event.target.classList.add('active');
+
+    // Update info text
+    document.getElementById('math-info').innerHTML = patternInfo[pattern];
+
+    // Adjust camera for each pattern
+    if (pattern === 'fibonacci') {
+        camera.position.set(0, 10, 12);
+    } else if (pattern === 'fractal') {
+        camera.position.set(0, 12, 8);
+    } else if (pattern === 'golden') {
+        camera.position.set(5, 8, 10);
+    } else if (pattern === 'symmetry') {
+        camera.position.set(0, 8, 10);
+    }
+
+    controls.target.set(0, 0, 0);
+    controls.update();
+};
+
+// Animation
+function animate() {
+    requestAnimationFrame(animate);
+
+    const time = performance.now() * 0.001;
+
+    // Gentle rotation for active pattern
+    if (fibonacciGroup.visible) {
+        fibonacciGroup.rotation.y = Math.sin(time * 0.2) * 0.1;
+    }
+    if (symmetryGroup.visible) {
+        symmetryGroup.rotation.y += 0.002;
+    }
+
+    // Pulse the gold light
+    goldLight.intensity = 1 + Math.sin(time * 2) * 0.3;
+
+    controls.update();
+    renderer.render(scene, camera);
+}
+
+// Handle resize
+window.addEventListener('resize', () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+animate();
+</script>
+
+<div class="experience-credit">
+    Designed by <span class="designer">Amarah Ishaque</span><br>
+    EDU596 Métis Foundational Knowledge
+</div>
+</body>
+</html>

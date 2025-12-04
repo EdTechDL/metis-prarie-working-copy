@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Debug Test</title>
+    <style>
+        body { margin: 20px; font-family: sans-serif; }
+        #log { background: #f0f0f0; padding: 10px; white-space: pre-wrap; }
+    </style>
+</head>
+<body>
+    <h1>Three.js Debug Test</h1>
+    <div id="log">Loading...</div>
+    <canvas id="canvas" width="400" height="300" style="border: 1px solid black; margin-top: 10px;"></canvas>
+
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js"
+            }
+        }
+    </script>
+    <script type="module">
+        const log = document.getElementById('log');
+
+        function addLog(msg) {
+            log.textContent += '\n' + msg;
+            console.log(msg);
+        }
+
+        addLog('Step 1: Script started');
+
+        try {
+            addLog('Step 2: Importing Three.js...');
+            const THREE = await import('three');
+            addLog('Step 3: Three.js loaded! Version: ' + THREE.REVISION);
+
+            const canvas = document.getElementById('canvas');
+            addLog('Step 4: Creating renderer...');
+
+            const renderer = new THREE.WebGLRenderer({ canvas: canvas });
+            addLog('Step 5: Renderer created!');
+
+            const scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x87CEEB);
+            addLog('Step 6: Scene created with sky blue background');
+
+            const camera = new THREE.PerspectiveCamera(75, 400/300, 0.1, 1000);
+            camera.position.z = 5;
+            addLog('Step 7: Camera created');
+
+            const geometry = new THREE.BoxGeometry(1, 1, 1);
+            const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+            const cube = new THREE.Mesh(geometry, material);
+            scene.add(cube);
+            addLog('Step 8: Green cube added');
+
+            renderer.render(scene, camera);
+            addLog('Step 9: RENDER COMPLETE - You should see a blue background with green cube above!');
+
+        } catch (error) {
+            addLog('ERROR: ' + error.message);
+            addLog('Stack: ' + error.stack);
+        }
+    </script>
+</body>
+</html>

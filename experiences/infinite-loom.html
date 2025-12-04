@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>The Infinite Loom: Cultural Mathematics</title>
+    <style>
+        body { margin: 0; overflow: hidden; background-color: #000; font-family: 'Segoe UI', sans-serif; }
+        
+        #ui-layer {
+            position: absolute; bottom: 40px; left: 40px; color: white;
+            background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(15px);
+            padding: 25px; border-left: 4px solid #BF2E1A; /* Métis Red */
+            max-width: 400px; border-radius: 0 12px 12px 0;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            user-select: none;
+        }
+
+        h1 { margin: 0 0 5px 0; font-weight: 300; letter-spacing: 2px; text-transform: uppercase; font-size: 1.4rem; }
+        h2 { margin: 0 0 15px 0; font-size: 0.9rem; color: #87CEEB; font-weight: 700; text-transform: uppercase; }
+        p { font-size: 0.9rem; line-height: 1.6; color: #eee; font-weight: 300; }
+
+        .slider-group { margin-top: 25px; border-top: 1px solid #555; padding-top: 15px; }
+        label { display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 8px; color: #bbb; letter-spacing: 0.5px; }
+        input[type=range] { width: 100%; accent-color: #BF2E1A; cursor: pointer; height: 4px; background: #555; border-radius: 2px; -webkit-appearance: none; }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; background: #fff; border-radius: 50%; cursor: pointer; }
+
+        #reflection-note {
+            position: absolute; top: 30px; right: 30px; text-align: right;
+            color: rgba(255,255,255,0.5); font-size: 0.75rem; pointer-events: none;
+            font-family: monospace; letter-spacing: 1px;
+        }
+
+        #back-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            padding: 12px 20px;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            color: white;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        #back-btn:hover {
+            background: rgba(50, 50, 50, 0.8);
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+        #back-btn svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        /* Credit footer */
+        .experience-credit {
+            position: fixed;
+            bottom: 15px;
+            right: 20px;
+            font-size: 0.7rem;
+            color: rgba(255, 255, 255, 0.4);
+            text-align: right;
+            pointer-events: none;
+            z-index: 100;
+        }
+        .experience-credit .designer {
+            color: rgba(255, 215, 0, 0.6);
+        }
+    </style>
+</head>
+<body>
+
+<button id="back-btn" onclick="window.location.href='../index.html'">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M19 12H5M12 19l-7-7 7-7"/>
+    </svg>
+    Back to Prairie
+</button>
+
+<div id="reflection-note">
+    RENDER: PBR GLASS / INSTANCED MESH<br>
+    OBJ: 12,000 VOXELS
+</div>
+
+<div id="ui-layer">
+    <h1>The Infinite Loom</h1>
+    <h2>L'Itouff du L'Infini</h2>
+    <p>
+        Explore the mathematics of the Métis Sash. By adjusting the amplitude and frequency, we visualize how cultural patterns are constructed using mathematical functions. 
+        <br><br>
+        The "Mirror" represents <em>Ka-ki-kè</em> (Forever)—the connection between past, present, and future.
+    </p>
+    <div class="slider-group">
+        <label><span>River Depth (Amplitude)</span> <span id="val-amp">1.0</span></label>
+        <input type="range" min="0" max="3" step="0.1" value="1.0" id="input-amp">
+        
+        <label><span>Weave Tension (Frequency)</span> <span id="val-freq">1.0</span></label>
+        <input type="range" min="0.2" max="3" step="0.1" value="1.0" id="input-freq">
+        
+        <label><span>Glass Opacity (Transmission)</span></label>
+        <input type="range" min="0" max="1" step="0.01" value="0.9" id="input-glass">
+    </div>
+</div>
+
+<script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+        }
+    }
+</script>
+
+<script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
+
+    // SCENE SETUP
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x020202);
+    scene.fog = new THREE.FogExp2(0x020202, 0.025);
+
+    const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
+    camera.position.set(-8, 5, 9);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.1;
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    document.body.appendChild(renderer.domElement);
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.autoRotate = true;
+    controls.autoRotateSpeed = 0.4;
+    controls.maxPolarAngle = Math.PI / 2 - 0.05; // Prevent going under floor
+
+    // LIGHTING
+    new RGBELoader()
+        .setPath('https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/')
+        .load('royal_esplanade_1k.hdr', function (texture) {
+            texture.mapping = THREE.EquirectangularReflectionMapping;
+            scene.environment = texture;
+        });
+
+    const spotLight = new THREE.SpotLight(0xffffff, 250);
+    spotLight.position.set(5, 15, 5);
+    spotLight.angle = Math.PI / 5;
+    spotLight.penumbra = 0.5;
+    spotLight.castShadow = true;
+    scene.add(spotLight);
+
+    const blueLight = new THREE.PointLight(0x0055A4, 60, 20); // Métis Blue
+    blueLight.position.set(-5, 2, -5);
+    scene.add(blueLight);
+
+    const redLight = new THREE.PointLight(0xBF2E1A, 60, 20); // Métis Red
+    redLight.position.set(5, -2, 5);
+    scene.add(redLight);
+
+    // MIRROR FLOOR
+    const mirrorGeo = new THREE.PlaneGeometry(200, 200);
+    const mirrorMat = new THREE.MeshStandardMaterial({
+        color: 0x050505, roughness: 0.02, metalness: 0.95
+    });
+    const floor = new THREE.Mesh(mirrorGeo, mirrorMat);
+    floor.rotation.x = -Math.PI / 2;
+    floor.position.y = -2;
+    floor.receiveShadow = true;
+    scene.add(floor);
+
+    // VOXEL SASH (InstancedMesh)
+    const beadsLong = 200;
+    const beadsWide = 60;
+    const beadCount = beadsLong * beadsWide;
+    
+    // Geometry: ChamferBox for nice highlights
+    const geometry = new THREE.BoxGeometry(0.08, 0.08, 0.08); 
+    const material = new THREE.MeshPhysicalMaterial({
+        roughness: 0.15, metalness: 0.1, transmission: 0.9, 
+        thickness: 0.5, ior: 1.5, clearcoat: 1.0
+    });
+
+    const mesh = new THREE.InstancedMesh(geometry, material, beadCount);
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
+    scene.add(mesh);
+
+    const dummy = new THREE.Object3D();
+    const colorPalette = [
+        new THREE.Color(0xBF2E1A), // Red
+        new THREE.Color(0x0055A4), // Blue
+        new THREE.Color(0xFFFFFF), // White
+        new THREE.Color(0xFFD700), // Gold
+        new THREE.Color(0x006400)  // Green
+    ];
+
+    // Color Pattern
+    for (let i = 0; i < beadCount; i++) {
+        const row = i % beadsWide;
+        const colIndex = Math.floor(row / 12) % colorPalette.length; 
+        mesh.setColorAt(i, colorPalette[colIndex]);
+    }
+    mesh.instanceColor.needsUpdate = true;
+
+    // ANIMATION
+    let time = 0;
+    const params = { amplitude: 1.0, frequency: 1.0 };
+
+    function animate() {
+        requestAnimationFrame(animate);
+        time += 0.015;
+        controls.update();
+
+        let index = 0;
+        for (let x = 0; x < beadsLong; x++) {
+            const xPos = (x - beadsLong / 2) * 0.1;
+            // The Math Function: y = A * sin(k * x)
+            const yWave = Math.sin(xPos * params.frequency + time) * params.amplitude;
+            const twist = Math.cos(xPos * 0.5 + time) * 0.5;
+
+            for (let z = 0; z < beadsWide; z++) {
+                const zPos = (z - beadsWide / 2) * 0.1;
+                dummy.position.set(xPos, yWave, zPos);
+                dummy.rotation.x = twist;
+                dummy.rotation.z = Math.cos(xPos * params.frequency + time) * 0.3;
+                dummy.updateMatrix();
+                mesh.setMatrixAt(index++, dummy.matrix);
+            }
+        }
+        mesh.instanceMatrix.needsUpdate = true;
+        renderer.render(scene, camera);
+    }
+    animate();
+
+    // UI EVENTS
+    document.getElementById('input-amp').addEventListener('input', (e) => {
+        params.amplitude = parseFloat(e.target.value);
+        document.getElementById('val-amp').innerText = params.amplitude;
+    });
+    document.getElementById('input-freq').addEventListener('input', (e) => {
+        params.frequency = parseFloat(e.target.value);
+        document.getElementById('val-freq').innerText = params.frequency;
+    });
+    document.getElementById('input-glass').addEventListener('input', (e) => {
+        material.transmission = parseFloat(e.target.value);
+    });
+    window.addEventListener('resize', () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+</script>
+
+<div class="experience-credit">
+    Designed by <span class="designer">Amarah Ishaque</span><br>
+    EDU596 Métis Foundational Knowledge
+</div>
+</body>
+</html>

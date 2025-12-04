@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>La Sizon di Pwason - The Fishing Season</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Inter:wght@300;400;600&display=swap');
+
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #000;
+            font-family: 'Inter', sans-serif;
+            user-select: none;
+        }
+
+        /* Back Button */
+        .back-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+            background: rgba(136, 192, 208, 0.9);
+            color: #05101a;
+            border: 2px solid #88c0d0;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'Cinzel', serif;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .back-button:hover {
+            background: #5e81ac;
+            color: white;
+            border-color: #5e81ac;
+            transform: translateX(-3px);
+        }
+
+        /* --- LOADING SCREEN (FAIL SAFE) --- */
+        #loader {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #05101a;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #88c0d0;
+            transition: opacity 1s ease;
+        }
+        .spinner {
+            width: 40px; height: 40px;
+            border: 4px solid #88c0d0;
+            border-top: 4px solid transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* --- UI LAYER --- */
+        #ui-layer {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 40px;
+        }
+
+        /* Header */
+        header {
+            text-align: left;
+            border-left: 2px solid #88c0d0;
+            padding-left: 20px;
+            background: linear-gradient(90deg, rgba(0,0,0,0.5), transparent);
+        }
+        h1 {
+            font-family: 'Cinzel', serif;
+            font-size: 2.5rem;
+            color: #fff;
+            margin: 0;
+            text-shadow: 0 4px 10px rgba(0,0,0,0.5);
+        }
+        h2 {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            color: #88c0d0;
+            margin-top: 5px;
+        }
+
+        /* Action Prompt */
+        #action-prompt {
+            position: absolute;
+            bottom: 60px;
+            width: 100%;
+            text-align: center;
+            left: 0;
+        }
+        .prompt-text {
+            display: inline-block;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(10px);
+            padding: 15px 40px;
+            border-radius: 30px;
+            border: 1px solid rgba(255,255,255,0.1);
+            color: white;
+            font-size: 1.1rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            transition: all 0.3s;
+        }
+
+        /* Tension Bar (For Reeling) */
+        #tension-container {
+            position: absolute;
+            bottom: 140px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 300px;
+            height: 10px;
+            background: rgba(0,0,0,0.5);
+            border-radius: 5px;
+            overflow: hidden;
+            display: none; /* Hidden until reeling */
+        }
+        #tension-bar {
+            width: 50%;
+            height: 100%;
+            background: #a3be8c; /* Green */
+            transition: width 0.1s, background 0.2s;
+        }
+
+        /* Catch Card */
+        #catch-card {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%) scale(0.9);
+            width: 380px;
+            background: rgba(15, 20, 25, 0.95);
+            border: 1px solid #88c0d0;
+            padding: 40px;
+            text-align: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 0 50px rgba(0,0,0,0.8);
+        }
+        #catch-card.active {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+            pointer-events: auto;
+        }
+        .card-title { font-family: 'Cinzel', serif; font-size: 2rem; color: #88c0d0; margin-bottom: 5px; }
+        .card-subtitle { font-size: 0.8rem; color: #aaa; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 20px; }
+        .card-desc { font-size: 0.95rem; line-height: 1.6; color: #ddd; margin-bottom: 30px; }
+        .btn {
+            background: transparent;
+            border: 1px solid #88c0d0;
+            color: #88c0d0;
+            padding: 12px 30px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn:hover { background: #88c0d0; color: #000; }
+
+        /* Error Message */
+        #error-msg {
+            color: #bf616a;
+            margin-top: 10px;
+            display: none;
+        }
+
+        /* Credit footer */
+        .experience-credit {
+            position: fixed;
+            bottom: 15px;
+            right: 20px;
+            font-size: 0.7rem;
+            color: rgba(255, 255, 255, 0.4);
+            text-align: right;
+            pointer-events: none;
+            z-index: 100;
+        }
+        .experience-credit .designer {
+            color: rgba(255, 215, 0, 0.6);
+        }
+    </style>
+</head>
+<body>
+
+    <a href="../index.html" class="back-button">← Back to Prairie</a>
+
+    <!-- LOADING OVERLAY -->
+    <div id="loader">
+        <div class="spinner"></div>
+        <div>Generating Nature...</div>
+        <div id="error-msg">Something went wrong. Please refresh.</div>
+    </div>
+
+    <!-- UI -->
+    <div id="ui-layer">
+        <header>
+            <h1>La Sizon di Pwason</h1>
+            <h2>The Fishing Season</h2>
+        </header>
+
+        <div id="tension-container">
+            <div id="tension-bar"></div>
+        </div>
+
+        <div id="action-prompt">
+            <div class="prompt-text" id="status-text">Click Water to Cast</div>
+        </div>
+
+        <div id="catch-card">
+            <div class="card-title" id="fish-michif">Li Doré</div>
+            <div class="card-subtitle" id="fish-eng">Walleye</div>
+            <div class="card-desc" id="fish-desc"></div>
+            <button class="btn" onclick="resetGame()">Keep the Catch</button>
+        </div>
+    </div>
+
+    <div id="canvas-container"></div>
+
+    <!-- IMPORT MAP: LOCKED VERSIONS -->
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { Water } from 'three/addons/objects/Water.js';
+        import { Sky } from 'three/addons/objects/Sky.js';
+
+        // --- GAME DATA ---
+        const CATCHES = [
+            { michif: "Li Doré", eng: "Pickerel (Walleye)", desc: "The most prized catch. In Métis culture, sharing the first catch of the season brings good luck to the community." },
+            { michif: "Li Boroshy", eng: "Jackfish (Pike)", desc: "A fierce predator. Often dried and smoked (wiiyas) to preserve it for the long winter ahead." },
+            { michif: "La Losh", eng: "Burbot", desc: "A freshwater cod caught in deep, cold waters. Its liver is rich in vitamins, crucial for health." }
+        ];
+
+        // --- GLOBALS ---
+        let scene, camera, renderer, water, sky, sun;
+        let rod, line, bobber;
+        let particles; // Pollen/Dust
+        
+        // Game State
+        const STATE = { IDLE: 0, CASTING: 1, WAITING: 2, BITING: 3, REELING: 4, CAUGHT: 5 };
+        let currentState = STATE.IDLE;
+        
+        let mouse = new THREE.Vector2();
+        let raycaster = new THREE.Raycaster();
+        let tension = 0; // 0 to 100
+        let biteTimer;
+
+        // --- SAFETY LOADER ---
+        // If the scene doesn't load in 5 seconds, force remove loader
+        setTimeout(() => {
+            const loader = document.getElementById('loader');
+            if(loader) loader.style.display = 'none';
+        }, 5000);
+
+        // --- INIT ---
+        function init() {
+            try {
+                const container = document.getElementById('canvas-container');
+
+                // 1. Scene
+                scene = new THREE.Scene();
+
+                // 2. Camera
+                camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 1, 20000);
+                camera.position.set(0, 15, 60);
+                camera.lookAt(0, 0, 0);
+
+                // 3. Renderer
+                renderer = new THREE.WebGLRenderer({ antialias: true });
+                renderer.setPixelRatio(window.devicePixelRatio);
+                renderer.setSize(window.innerWidth, window.innerHeight);
+                renderer.toneMapping = THREE.ACESFilmicToneMapping;
+                renderer.toneMappingExposure = 0.5;
+                container.appendChild(renderer.domElement);
+
+                // 4. Environment
+                setupLighting();
+                setupWater(); // The complex part
+                setupShoreline();
+                setupFishingGear();
+                setupParticles();
+
+                // 5. Interaction
+                window.addEventListener('resize', onResize);
+                window.addEventListener('mousemove', onMouseMove);
+                window.addEventListener('mousedown', onMouseDown);
+                window.addEventListener('mouseup', onMouseUp);
+
+                // Remove Loader Success
+                const loader = document.getElementById('loader');
+                loader.style.opacity = '0';
+                setTimeout(() => loader.remove(), 1000);
+
+                animate();
+
+            } catch (e) {
+                console.error(e);
+                document.getElementById('error-msg').style.display = 'block';
+                document.getElementById('error-msg').innerText = "Error: " + e.message;
+            }
+        }
+
+        // --- ENVIRONMENT ---
+
+        function setupLighting() {
+            sun = new THREE.Vector3();
+            
+            // Sky
+            sky = new Sky();
+            sky.scale.setScalar(10000);
+            scene.add(sky);
+
+            const uniforms = sky.material.uniforms;
+            uniforms['turbidity'].value = 10;
+            uniforms['rayleigh'].value = 2;
+            uniforms['mieCoefficient'].value = 0.005;
+            uniforms['mieDirectionalG'].value = 0.8;
+
+            // Sun Position (Late Afternoon)
+            const phi = THREE.MathUtils.degToRad(85); // Elevation
+            const theta = THREE.MathUtils.degToRad(180); // Azimuth
+            sun.setFromSphericalCoords(1, phi, theta);
+            uniforms['sunPosition'].value.copy(sun);
+
+            // Ambient
+            const ambient = new THREE.AmbientLight(0x404040, 1.5); // Soft white light
+            scene.add(ambient);
+        }
+
+        function setupWater() {
+            const waterGeometry = new THREE.PlaneGeometry(10000, 10000);
+
+            // Create Water Normal Map Procedurally
+            const canvas = document.createElement('canvas');
+            canvas.width = 512; canvas.height = 512;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#8080ff'; // Flat normal
+            ctx.fillRect(0,0,512,512);
+            // Add noise
+            for(let i=0; i<5000; i++) {
+                ctx.fillStyle = `rgba(${Math.random()*255}, ${Math.random()*255}, 255, 0.1)`;
+                ctx.fillRect(Math.random()*512, Math.random()*512, 4, 4);
+            }
+            const waterNormals = new THREE.CanvasTexture(canvas);
+            waterNormals.wrapS = waterNormals.wrapT = THREE.RepeatWrapping;
+
+            water = new Water(waterGeometry, {
+                textureWidth: 512,
+                textureHeight: 512,
+                waterNormals: waterNormals,
+                sunDirection: new THREE.Vector3(),
+                sunColor: 0xffffff,
+                waterColor: 0x001e0f,
+                distortionScale: 3.7,
+                fog: scene.fog !== undefined
+            });
+
+            water.rotation.x = -Math.PI / 2;
+            water.material.uniforms['sunDirection'].value.copy(sun).normalize();
+            scene.add(water);
+        }
+
+        function setupShoreline() {
+            // Simple low-poly bank to frame the shot
+            const geo = new THREE.BoxGeometry(200, 10, 50);
+            const mat = new THREE.MeshStandardMaterial({ color: 0x3b5323, roughness: 1 }); // Dark green grass
+            const bank = new THREE.Mesh(geo, mat);
+            bank.position.set(0, -4, 60); // Behind camera/at feet
+            scene.add(bank);
+
+            // Some "Reeds" (Simple cylinders)
+            const reedGeo = new THREE.CylinderGeometry(0.1, 0.1, 3, 4);
+            const reedMat = new THREE.MeshStandardMaterial({ color: 0x556b2f });
+            const reeds = new THREE.InstancedMesh(reedGeo, reedMat, 50);
+            
+            const dummy = new THREE.Object3D();
+            for(let i=0; i<50; i++) {
+                dummy.position.set((Math.random()-0.5)*80, 0, 40 + Math.random()*10);
+                dummy.scale.y = 0.5 + Math.random();
+                dummy.rotation.z = (Math.random()-0.5)*0.5;
+                dummy.updateMatrix();
+                reeds.setMatrixAt(i, dummy.matrix);
+            }
+            scene.add(reeds);
+        }
+
+        function setupFishingGear() {
+            // Bobber
+            const sphere = new THREE.SphereGeometry(0.5, 16, 16);
+            const matRed = new THREE.MeshStandardMaterial({ color: 0xff4444, roughness: 0.1 });
+            const matWhite = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.1 });
+            
+            const top = new THREE.Mesh(sphere, matRed);
+            const bot = new THREE.Mesh(sphere, matWhite);
+            bot.position.y = -0.4;
+            bot.scale.set(1, 0.8, 1);
+            
+            bobber = new THREE.Group();
+            bobber.add(top, bot);
+            bobber.position.set(0, -10, 0); // Hide initially
+            scene.add(bobber);
+
+            // Line
+            const lineGeo = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0,0,0), new THREE.Vector3(0,0,0)]);
+            const lineMat = new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.6 });
+            line = new THREE.Line(lineGeo, lineMat);
+            line.frustumCulled = false; // Always render
+            scene.add(line);
+        }
+
+        function setupParticles() {
+            const geo = new THREE.BufferGeometry();
+            const count = 500;
+            const pos = new Float32Array(count * 3);
+            for(let i=0; i<count*3; i++) pos[i] = (Math.random()-0.5) * 200;
+            geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+            const mat = new THREE.PointsMaterial({ color: 0xffffee, size: 0.2, transparent: true, opacity: 0.6 });
+            particles = new THREE.Points(geo, mat);
+            scene.add(particles);
+        }
+
+        // --- GAMEPLAY LOGIC ---
+
+        function updateStatus(text) {
+            document.getElementById('status-text').innerText = text;
+        }
+
+        function onMouseDown() {
+            if (currentState === STATE.IDLE) {
+                castLine();
+            } else if (currentState === STATE.BITING) {
+                startReeling();
+            } else if (currentState === STATE.REELING) {
+                // Holding mouse increases tension
+                tension += 2; 
+            }
+        }
+
+        function onMouseUp() {
+            // Releasing mouse decreases tension
+            if (currentState === STATE.REELING) {
+                // Logic handled in update loop
+            }
+        }
+
+        function castLine() {
+            currentState = STATE.CASTING;
+            updateStatus("Casting...");
+            
+            // Raycast to water
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObject(water);
+            
+            let target = new THREE.Vector3(0, 0, -30);
+            if(intersects.length > 0) target = intersects[0].point;
+
+            // Animate Bobber
+            bobber.position.set(0, 20, 50); // From camera position
+            
+            // Simple physics arc
+            let t = 0;
+            const start = bobber.position.clone();
+            
+            const castAnim = setInterval(() => {
+                t += 0.02;
+                // Parabolic arc lerp
+                bobber.position.lerpVectors(start, target, t);
+                bobber.position.y += Math.sin(t * Math.PI) * 10; // Arc height
+
+                if (t >= 1) {
+                    clearInterval(castAnim);
+                    bobber.position.copy(target); // Snap to surface
+                    startWaiting();
+                }
+            }, 16);
+        }
+
+        function startWaiting() {
+            currentState = STATE.WAITING;
+            updateStatus("Waiting for a bite...");
+            
+            // Random time 2-5s
+            const wait = 2000 + Math.random() * 3000;
+            biteTimer = setTimeout(triggerBite, wait);
+        }
+
+        function triggerBite() {
+            if(currentState !== STATE.WAITING) return;
+            currentState = STATE.BITING;
+            updateStatus("FISH ON! CLICK TO HOOK!");
+            document.querySelector('.prompt-text').style.color = '#ffaa00';
+            
+            // Bobber dunk animation
+            let dunk = 0;
+            const biteAnim = setInterval(() => {
+                if(currentState !== STATE.BITING) { clearInterval(biteAnim); return; }
+                dunk += 0.2;
+                bobber.position.y = Math.sin(dunk) * 1 - 0.5;
+            }, 16);
+
+            // Fail condition
+            setTimeout(() => {
+                if(currentState === STATE.BITING) {
+                    updateStatus("Lost it...");
+                    document.querySelector('.prompt-text').style.color = 'white';
+                    resetToIdle();
+                }
+            }, 2000);
+        }
+
+        function startReeling() {
+            currentState = STATE.REELING;
+            updateStatus("HOLD CLICK TO REEL");
+            document.querySelector('.prompt-text').style.color = 'white';
+            document.getElementById('tension-container').style.display = 'block';
+            tension = 50; // Start middle
+        }
+
+        function catchFish() {
+            currentState = STATE.CAUGHT;
+            document.getElementById('tension-container').style.display = 'none';
+            updateStatus("Caught!");
+
+            const fish = CATCHES[Math.floor(Math.random()*CATCHES.length)];
+            
+            document.getElementById('fish-michif').innerText = fish.michif;
+            document.getElementById('fish-eng').innerText = fish.eng;
+            document.getElementById('fish-desc').innerText = fish.desc;
+            
+            document.getElementById('catch-card').classList.add('active');
+        }
+
+        function resetToIdle() {
+            currentState = STATE.IDLE;
+            bobber.position.set(0, -50, 0); // Hide
+            setTimeout(() => updateStatus("Click Water to Cast"), 1000);
+        }
+        
+        window.resetGame = function() {
+            document.getElementById('catch-card').classList.remove('active');
+            resetToIdle();
+        }
+
+        function onMouseMove(e) {
+            mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+        }
+
+        function onResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        // --- LOOP ---
+
+        function animate() {
+            requestAnimationFrame(animate);
+            const time = performance.now() * 0.001;
+
+            // 1. Water Animation
+            water.material.uniforms['time'].value += 1.0 / 60.0;
+
+            // 2. Line Logic
+            if (currentState !== STATE.IDLE && currentState !== STATE.CAUGHT) {
+                // Line goes from Rod Tip (offscreen right) to Bobber
+                const rodTip = new THREE.Vector3(10, 10, 50);
+                const positions = line.geometry.attributes.position.array;
+                positions[0] = rodTip.x; positions[1] = rodTip.y; positions[2] = rodTip.z;
+                positions[3] = bobber.position.x; positions[4] = bobber.position.y; positions[5] = bobber.position.z;
+                line.geometry.attributes.position.needsUpdate = true;
+            } else {
+                // Hide line
+                const positions = line.geometry.attributes.position.array;
+                positions[0] = 0; positions[1] = 0; positions[2] = 0;
+                positions[3] = 0; positions[4] = 0; positions[5] = 0;
+                line.geometry.attributes.position.needsUpdate = true;
+            }
+
+            // 3. Reeling Logic (Tension Game)
+            if (currentState === STATE.REELING) {
+                // Tension naturally drops
+                tension -= 0.5; 
+                
+                // If mouse is down (handled in listeners), tension goes up
+                if (tension < 0) tension = 0;
+                if (tension > 100) tension = 100;
+
+                // Visual bar
+                const bar = document.getElementById('tension-bar');
+                bar.style.width = tension + '%';
+                
+                // Colors
+                if (tension < 20 || tension > 80) bar.style.background = '#bf616a'; // Red (Danger)
+                else bar.style.background = '#a3be8c'; // Green (Good)
+
+                // Win Condition
+                // Pull bobber closer slowly
+                bobber.position.z += 0.2;
+                bobber.position.y = Math.sin(time * 10) * 0.5; // Struggle
+
+                if (bobber.position.z > 30) {
+                    if (tension > 20 && tension < 80) catchFish();
+                    else {
+                        updateStatus("Line Snapped!");
+                        resetToIdle();
+                    }
+                }
+            } else if (currentState === STATE.WAITING) {
+                // Bob gentle wave
+                bobber.position.y = Math.sin(time * 2) * 0.1;
+            }
+
+            // 4. Particles (Pollen)
+            if(particles) {
+                particles.rotation.y = time * 0.05;
+                particles.position.y = Math.sin(time * 0.5) * 2;
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        init();
+    </script>
+
+    <div class="experience-credit">
+        Designed by <span class="designer">Amarah Ishaque</span><br>
+        EDU596 Métis Foundational Knowledge
+    </div>
+</body>
+</html>

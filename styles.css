@@ -1,0 +1,707 @@
+body {
+    margin: 0;
+    overflow: hidden;
+    background-color: #000;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+#ui-container {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    color: white;
+    background: rgba(0, 0, 0, 0.5);
+    padding: 15px 20px;
+    border-radius: 10px;
+    backdrop-filter: blur(5px);
+}
+
+h1 {
+    margin: 0 0 10px 0;
+    font-size: 1.5rem;
+    font-weight: 300;
+    letter-spacing: 1px;
+}
+
+.controls p {
+    margin: 5px 0;
+    font-size: 0.85rem;
+    opacity: 0.9;
+}
+
+.controls p:first-child {
+    margin-bottom: 8px;
+    opacity: 1;
+}
+
+.subtitle {
+    margin: 0 0 10px 0;
+    font-size: 0.9rem;
+    opacity: 0.8;
+    font-style: italic;
+}
+
+.hint {
+    margin-top: 10px !important;
+    font-size: 0.8rem;
+    opacity: 0.7;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    padding-top: 8px;
+}
+
+.hint em {
+    display: block;
+    margin-top: 4px;
+    color: #FFD700;
+    font-style: italic;
+}
+
+/* Credits section */
+.credits {
+    margin-top: 15px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(255, 215, 0, 0.3);
+    text-align: center;
+}
+
+.credit-line {
+    margin: 0;
+    font-size: 0.7rem;
+    opacity: 0.6;
+    letter-spacing: 0.5px;
+}
+
+.credit-name {
+    margin: 4px 0;
+    font-size: 0.9rem;
+    color: #FFD700;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+}
+
+.credit-course {
+    margin: 4px 0;
+    font-size: 0.65rem;
+    opacity: 0.7;
+    line-height: 1.4;
+    font-style: italic;
+}
+
+.credit-date {
+    margin: 6px 0 0 0;
+    font-size: 0.7rem;
+    color: #FFD700;
+    opacity: 0.8;
+    font-weight: 500;
+}
+
+canvas {
+    display: block;
+}
+
+/* Minimap styles */
+#minimap-container {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 220px;
+    background: rgba(0, 0, 0, 0.6);
+    border-radius: 10px;
+    padding: 12px;
+    backdrop-filter: blur(5px);
+}
+
+#minimap-title {
+    color: white;
+    font-size: 0.85rem;
+    margin: 0 0 8px 0;
+    text-align: center;
+    opacity: 0.9;
+}
+
+#minimap {
+    width: 196px;
+    height: 140px;
+    background: linear-gradient(135deg, #3a5f0b 0%, #4a6f1b 50%, #2d7a7a 100%);
+    border-radius: 6px;
+    position: relative;
+    cursor: pointer;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    overflow: hidden;
+}
+
+/* River on minimap - SVG-based meandering river */
+#minimap-river {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+}
+
+#minimap-river path {
+    fill: none;
+    stroke: #2d7a7a;
+    stroke-width: 10;
+    stroke-linecap: round;
+    filter: drop-shadow(0 0 2px rgba(45, 122, 122, 0.5));
+}
+
+/* Cabin markers on minimap */
+.minimap-cabin {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    background: #ffaa44;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 0 4px #ffaa44;
+    pointer-events: none;
+    font-size: 8px;
+    color: #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+}
+
+/* Fireplace markers on minimap */
+.minimap-fire {
+    position: absolute;
+    width: 5px;
+    height: 5px;
+    background: #ff4400;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 0 3px #ff6600, 0 0 6px #ff4400;
+    pointer-events: none;
+    animation: firePulse 1.5s ease-in-out infinite;
+}
+
+@keyframes firePulse {
+    0%, 100% { opacity: 0.8; box-shadow: 0 0 4px #ff6600, 0 0 8px #ff4400; }
+    50% { opacity: 1; box-shadow: 0 0 6px #ff8800, 0 0 12px #ff4400; }
+}
+
+/* Medicine bundle/herb markers on minimap */
+.minimap-herbs {
+    position: absolute;
+    width: 8px;
+    height: 6px;
+    background: linear-gradient(135deg, #a3be8c 0%, #5f8a5f 100%);
+    border-radius: 2px;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 0 4px #a3be8c, 0 0 8px rgba(163, 190, 140, 0.5);
+    pointer-events: none;
+    animation: herbGlow 2s ease-in-out infinite;
+}
+
+.minimap-herbs::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 3px solid transparent;
+    border-right: 3px solid transparent;
+    border-bottom: 3px solid #88c0d0;
+}
+
+@keyframes herbGlow {
+    0%, 100% { opacity: 0.9; box-shadow: 0 0 6px #a3be8c, 0 0 10px rgba(163, 190, 140, 0.5); }
+    50% { opacity: 1; box-shadow: 0 0 10px #a3be8c, 0 0 16px rgba(163, 190, 140, 0.7); }
+}
+
+/* Log pile / Architecture markers on minimap */
+.minimap-logpile {
+    position: absolute;
+    width: 9px;
+    height: 7px;
+    background: linear-gradient(135deg, #ddaa55 0%, #8b6914 100%);
+    border-radius: 2px;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 0 4px #ddaa55, 0 0 8px rgba(221, 170, 85, 0.5);
+    pointer-events: none;
+    animation: logGlow 2.5s ease-in-out infinite;
+}
+
+.minimap-logpile::before {
+    content: '';
+    position: absolute;
+    top: -3px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    border-bottom: 4px solid #8b6914;
+}
+
+.minimap-logpile::after {
+    content: '';
+    position: absolute;
+    bottom: 1px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 6px;
+    height: 2px;
+    background: #5a4030;
+    border-radius: 1px;
+}
+
+@keyframes logGlow {
+    0%, 100% { opacity: 0.9; box-shadow: 0 0 6px #ddaa55, 0 0 10px rgba(221, 170, 85, 0.5); }
+    50% { opacity: 1; box-shadow: 0 0 10px #eecc77, 0 0 16px rgba(221, 170, 85, 0.7); }
+}
+
+/* Garden / Farming markers on minimap */
+.minimap-garden {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    background: linear-gradient(135deg, #7CB342 0%, #558B2F 100%);
+    border-radius: 2px;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 0 4px #7CB342, 0 0 8px rgba(124, 179, 66, 0.5);
+    pointer-events: none;
+    animation: gardenGlow 2s ease-in-out infinite;
+}
+
+.minimap-garden::before {
+    content: '';
+    position: absolute;
+    top: 1px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 2px;
+    height: 3px;
+    background: #33691E;
+    border-radius: 1px;
+}
+
+.minimap-garden::after {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 5px;
+    height: 3px;
+    background: #8BC34A;
+    border-radius: 50% 50% 0 0;
+}
+
+@keyframes gardenGlow {
+    0%, 100% { opacity: 0.9; box-shadow: 0 0 6px #7CB342, 0 0 10px rgba(124, 179, 66, 0.5); }
+    50% { opacity: 1; box-shadow: 0 0 10px #8BC34A, 0 0 16px rgba(124, 179, 66, 0.7); }
+}
+
+/* Red River Cart markers on minimap */
+.minimap-cart {
+    position: absolute;
+    width: 9px;
+    height: 7px;
+    background: linear-gradient(135deg, #8b5a2b 0%, #5d4037 100%);
+    border-radius: 2px;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 0 4px #8b5a2b, 0 0 8px rgba(139, 90, 43, 0.5);
+    pointer-events: none;
+    animation: cartGlow 2.5s ease-in-out infinite;
+}
+
+.minimap-cart::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: -2px;
+    transform: translateY(-50%);
+    width: 4px;
+    height: 4px;
+    background: #6D4C41;
+    border: 1px solid #5d4037;
+    border-radius: 50%;
+}
+
+.minimap-cart::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    right: -2px;
+    transform: translateY(-50%);
+    width: 4px;
+    height: 4px;
+    background: #6D4C41;
+    border: 1px solid #5d4037;
+    border-radius: 50%;
+}
+
+@keyframes cartGlow {
+    0%, 100% { opacity: 0.9; box-shadow: 0 0 6px #8b5a2b, 0 0 10px rgba(139, 90, 43, 0.5); }
+    50% { opacity: 1; box-shadow: 0 0 10px #a1887f, 0 0 16px rgba(139, 90, 43, 0.7); }
+}
+
+/* Fishing spot markers on minimap */
+.minimap-fishing {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    background: linear-gradient(135deg, #4488cc 0%, #2266aa 100%);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 0 4px #4488cc, 0 0 8px rgba(68, 136, 204, 0.5);
+    pointer-events: none;
+    animation: fishGlow 2s ease-in-out infinite;
+}
+
+.minimap-fishing::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 4px;
+    height: 2px;
+    background: #88ccff;
+    border-radius: 50%;
+}
+
+.minimap-fishing::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    right: -2px;
+    transform: translateY(-50%);
+    width: 0;
+    height: 0;
+    border-top: 2px solid transparent;
+    border-bottom: 2px solid transparent;
+    border-left: 3px solid #88ccff;
+}
+
+@keyframes fishGlow {
+    0%, 100% { opacity: 0.9; box-shadow: 0 0 6px #4488cc, 0 0 10px rgba(68, 136, 204, 0.5); }
+    50% { opacity: 1; box-shadow: 0 0 10px #66aadd, 0 0 16px rgba(68, 136, 204, 0.7); }
+}
+
+/* Memorial marker - amber/orange for remembrance */
+.minimap-memorial {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background: linear-gradient(135deg, #cc6600 0%, #994400 100%);
+    border-radius: 2px;
+    transform: translate(-50%, -50%) rotate(45deg);
+    box-shadow: 0 0 8px rgba(204, 102, 0, 0.6);
+    animation: memorialGlow 3s ease-in-out infinite;
+}
+
+.minimap-memorial::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 4px;
+    height: 4px;
+    background: #ffcc88;
+    border-radius: 50%;
+}
+
+@keyframes memorialGlow {
+    0%, 100% { opacity: 0.85; box-shadow: 0 0 6px rgba(204, 102, 0, 0.5); }
+    50% { opacity: 1; box-shadow: 0 0 12px rgba(204, 102, 0, 0.8), 0 0 20px rgba(204, 102, 0, 0.4); }
+}
+
+/* Current view indicator */
+#minimap-indicator {
+    position: absolute;
+    width: 20px;
+    height: 15px;
+    border: 2px solid #fff;
+    border-radius: 3px;
+    background: rgba(255, 255, 255, 0.15);
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    transition: left 0.15s ease-out, top 0.15s ease-out;
+}
+
+#minimap-hint {
+    color: white;
+    font-size: 0.7rem;
+    margin: 6px 0 0 0;
+    text-align: center;
+    opacity: 0.6;
+}
+
+/* Cabin jump buttons */
+#cabin-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 10px;
+}
+
+.cabin-btn {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 2px solid #ffaa44;
+    background: rgba(255, 170, 68, 0.3);
+    color: white;
+    font-weight: bold;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.cabin-btn:hover {
+    background: rgba(255, 170, 68, 0.6);
+    transform: scale(1.1);
+}
+
+.cabin-btn.visited {
+    border-color: #666;
+    background: rgba(100, 100, 100, 0.3);
+    color: #888;
+}
+
+.cabin-btn.visited:hover {
+    background: rgba(100, 100, 100, 0.5);
+}
+
+/* Overview button */
+#overview-btn {
+    display: block;
+    width: 100%;
+    margin-top: 8px;
+    padding: 6px 12px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+#overview-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.5);
+}
+
+/* Progress Tracker */
+#progress-tracker {
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(255, 215, 0, 0.2);
+}
+
+#progress-label {
+    color: #FFD700;
+    font-size: 0.75rem;
+    margin: 0 0 6px 0;
+    text-align: center;
+    font-weight: 500;
+}
+
+#progress-bar-container {
+    width: 100%;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 215, 0, 0.3);
+}
+
+#progress-bar {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #FFD700 0%, #FFA500 100%);
+    border-radius: 3px;
+    transition: width 0.5s ease;
+    box-shadow: 0 0 8px rgba(255, 215, 0, 0.5);
+}
+
+#progress-text {
+    color: white;
+    font-size: 0.7rem;
+    margin: 5px 0 0 0;
+    text-align: center;
+    opacity: 0.8;
+}
+
+#progress-count {
+    color: #FFD700;
+    font-weight: bold;
+}
+
+/* Welcome Modal */
+#welcome-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    backdrop-filter: blur(10px);
+    z-index: 2000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 1;
+    transition: opacity 0.5s ease;
+}
+
+#welcome-modal.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+#welcome-content {
+    width: 90%;
+    max-width: 600px;
+    max-height: 90vh;
+    overflow-y: auto;
+    background: linear-gradient(135deg, #1a2530 0%, #0d1520 100%);
+    border: 2px solid #FFD700;
+    border-radius: 16px;
+    padding: 35px 40px;
+    color: white;
+    text-align: center;
+    box-shadow: 0 0 60px rgba(255, 215, 0, 0.2), 0 20px 60px rgba(0, 0, 0, 0.8);
+}
+
+#welcome-header {
+    margin-bottom: 25px;
+}
+
+#welcome-icon {
+    font-size: 4rem;
+    margin-bottom: 10px;
+}
+
+#welcome-header h1 {
+    font-family: 'Georgia', serif;
+    font-size: 2.5rem;
+    color: #FFD700;
+    margin: 0;
+    text-shadow: 0 0 20px rgba(255, 215, 0, 0.4);
+}
+
+.welcome-subtitle {
+    font-size: 1.1rem;
+    color: #c0a040;
+    margin: 5px 0 0 0;
+    font-style: italic;
+}
+
+#welcome-body {
+    text-align: left;
+    margin-bottom: 25px;
+}
+
+#welcome-body > p {
+    font-size: 0.95rem;
+    line-height: 1.7;
+    margin-bottom: 15px;
+    color: #d0d0d0;
+}
+
+#welcome-instructions,
+#welcome-navigation {
+    background: rgba(255, 215, 0, 0.05);
+    border: 1px solid rgba(255, 215, 0, 0.2);
+    border-radius: 8px;
+    padding: 15px 20px;
+    margin-bottom: 15px;
+}
+
+#welcome-instructions h3,
+#welcome-navigation h3 {
+    color: #FFD700;
+    font-size: 1rem;
+    margin: 0 0 10px 0;
+}
+
+#welcome-instructions ul {
+    margin: 0;
+    padding-left: 20px;
+}
+
+#welcome-instructions li {
+    font-size: 0.9rem;
+    color: #c0c0c0;
+    margin-bottom: 8px;
+    line-height: 1.5;
+}
+
+#welcome-navigation p {
+    font-size: 0.85rem;
+    color: #a0a0a0;
+    margin: 5px 0;
+}
+
+#welcome-begin-btn {
+    background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+    color: #1a1a2e;
+    border: none;
+    padding: 15px 50px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    cursor: pointer;
+    border-radius: 30px;
+    transition: all 0.3s ease;
+    margin: 20px 0;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+#welcome-begin-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
+}
+
+#welcome-footer {
+    font-size: 0.85rem;
+    color: #888;
+    margin: 20px 0 0 0;
+    line-height: 1.6;
+}
+
+#welcome-footer em {
+    color: #c0a040;
+}
+
+/* Welcome credit section */
+#welcome-credit {
+    margin-top: 25px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255, 215, 0, 0.3);
+}
+
+#welcome-credit p {
+    margin: 0;
+    font-size: 0.9rem;
+    color: #a0a0a0;
+}
+
+#welcome-credit .designer-name {
+    color: #FFD700;
+    font-size: 1.1rem;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
+}
+
+#welcome-credit .credit-course-info {
+    font-size: 0.75rem;
+    color: #808080;
+    margin-top: 5px;
+    font-style: italic;
+}

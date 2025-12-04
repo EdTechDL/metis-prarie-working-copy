@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Li Jardaen di Michinn - The Medicine Garden</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;600&display=swap');
+
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #020406;
+            font-family: 'Inter', sans-serif;
+            color: #EAEAEA;
+        }
+
+        /* Back Button */
+        .back-btn {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            padding: 12px 24px;
+            background: rgba(10, 15, 20, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(163, 190, 140, 0.3);
+            border-radius: 8px;
+            color: #a3be8c;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.9rem;
+            cursor: pointer;
+            z-index: 1000;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .back-btn:hover {
+            background: rgba(163, 190, 140, 0.2);
+            border-color: #a3be8c;
+            transform: translateX(-3px);
+        }
+
+        /* --- UI LAYER --- */
+        #ui-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        header {
+            position: absolute;
+            top: 40px;
+            right: 40px;
+            text-align: right;
+            pointer-events: auto;
+        }
+
+        h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.5rem;
+            margin: 0;
+            background: linear-gradient(90deg, #fff, #88c0d0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        h2 {
+            font-size: 0.85rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            opacity: 0.6;
+            margin-top: 5px;
+        }
+
+        /* Protocol Indicator (The Ring) */
+        #gesture-indicator {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        #gesture-text {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-align: center;
+            color: rgba(255,255,255,0.8);
+            font-weight: 600;
+        }
+
+        #progress-ring {
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 3px solid #a3be8c; /* Sage Green */
+            border-left-color: transparent;
+            border-bottom-color: transparent;
+            border-right-color: transparent;
+            transform: rotate(-45deg);
+            transition: transform 1s linear;
+            opacity: 0;
+        }
+
+        /* Information Panel */
+        #info-panel {
+            position: absolute;
+            bottom: 40px;
+            right: 40px;
+            width: 350px;
+            background: rgba(10, 15, 20, 0.7);
+            backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 40px;
+            border-radius: 12px;
+            transform: translateX(130%);
+            transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+            pointer-events: auto;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
+
+        #info-panel.active { transform: translateX(0); }
+
+        .close-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 30px;
+            height: 30px;
+            cursor: pointer;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+        .close-btn:hover { opacity: 1; }
+
+        .plant-michif { font-family: 'Playfair Display', serif; font-size: 2.2rem; color: #a3be8c; margin-bottom: 5px; }
+        .plant-eng { font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; color: #88c0d0; margin-bottom: 25px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px; }
+        .plant-desc { font-size: 1rem; line-height: 1.6; color: #ddd; margin-bottom: 30px; font-weight: 300; }
+
+        .return-btn {
+            display: block;
+            width: 100%;
+            padding: 15px 0;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: white;
+            text-align: center;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border-radius: 4px;
+        }
+        .return-btn:hover {
+            background: rgba(163, 190, 140, 0.2);
+            border-color: #a3be8c;
+        }
+
+        /* Custom Cursor */
+        #cursor {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: white;
+            border-radius: 50%;
+            pointer-events: none;
+            transform: translate(-50%, -50%);
+            mix-blend-mode: difference;
+            transition: width 0.2s, height 0.2s;
+            z-index: 100;
+        }
+
+        /* Credit footer */
+        .experience-credit {
+            position: fixed;
+            bottom: 15px;
+            right: 20px;
+            font-size: 0.7rem;
+            color: rgba(255, 255, 255, 0.4);
+            text-align: right;
+            pointer-events: none;
+            z-index: 100;
+        }
+        .experience-credit .designer {
+            color: rgba(255, 215, 0, 0.6);
+        }
+    </style>
+</head>
+<body>
+
+    <a href="../index.html" class="back-btn">← Return to Prairie</a>
+
+    <div id="cursor"></div>
+
+    <div id="ui-layer">
+        <header>
+            <h1>Li Jardaen</h1>
+            <h2>The Medicine Garden</h2>
+        </header>
+
+        <!-- The "Hold to offer" UI -->
+        <div id="gesture-indicator">
+            <div id="progress-ring"></div>
+            <span id="gesture-text">Hold Click<br>to Offer</span>
+        </div>
+
+        <!-- Plant Knowledge Card -->
+        <div id="info-panel">
+            <div class="close-btn" id="close-x">✕</div>
+            <div class="plant-michif" id="p-michif">Wihkaskwa</div>
+            <div class="plant-eng" id="p-eng">Sweetgrass</div>
+            <div class="plant-desc" id="p-desc">
+                Known for its sweet scent, this is a sacred medicine used for smudging and purification. It represents kindness and is often braided to signify strength in unity.
+            </div>
+
+            <div class="return-btn" id="return-btn">Maarsii (Return)</div>
+        </div>
+    </div>
+
+    <div id="canvas-container"></div>
+
+    <!-- Imports -->
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+        import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+        import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+        import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+
+        // --- DATA: METIS PLANT KNOWLEDGE ---
+        const plants = [
+            {
+                id: 'sweetgrass',
+                michif: "Wihkaskwa",
+                eng: "Sweetgrass",
+                desc: "The hair of Mother Earth. Used for cleansing the spirit and calming the mind. We braid it (three strands) to represent mind, body, and spirit.",
+                color: 0x55ff55, // Bright Green
+                geometryType: 'braid',
+                position: new THREE.Vector3(-4, 0, -5)
+            },
+            {
+                id: 'sage',
+                michif: "Li Sawj",
+                eng: "Sage",
+                desc: "A women's medicine used to remove negative energy. It cleanses the home and the heart. It grows wild in the dry prairies.",
+                color: 0xaaccff, // Silver Blue
+                geometryType: 'bush',
+                position: new THREE.Vector3(4, 0, -8)
+            },
+            {
+                id: 'saskatoon',
+                michif: "Li Pwayr",
+                eng: "Saskatoon Berry",
+                desc: "A staple food for the Métis. Used in Pemmican (Pimiihkkaan) to sustain travelers on long journeys. The branches were used for arrows.",
+                color: 0x9933ff, // Purple
+                geometryType: 'tall',
+                position: new THREE.Vector3(-2, 0, -12)
+            },
+            {
+                id: 'cedar',
+                michif: "Li Sedr",
+                eng: "Cedar",
+                desc: "Used for protection and tea (bush tea). It is rich in Vitamin C and helped ancestors survive the harsh winters.",
+                color: 0xffaa00, // Amber/Rust
+                geometryType: 'cone',
+                position: new THREE.Vector3(3, 0, -15)
+            }
+        ];
+
+        // --- CONFIG ---
+        let scene, camera, renderer, composer;
+        let mouse = new THREE.Vector2();
+        let raycaster = new THREE.Raycaster();
+        let plantMeshes = [];
+        let fireflies;
+        let isHolding = false;
+        let holdTimer = 0;
+        let hoveredPlant = null;
+        let activePlant = null;
+
+        // --- INIT ---
+        function init() {
+            // Scene Setup
+            scene = new THREE.Scene();
+            scene.fog = new THREE.FogExp2(0x020406, 0.05); // Thick dark fog
+            scene.background = new THREE.Color(0x020406);
+
+            // Camera
+            camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 100);
+            camera.position.set(0, 2, 5);
+
+            // Renderer
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+            // Post Processing (Cinematic Look)
+            const renderScene = new RenderPass(scene, camera);
+
+            const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
+            bloomPass.threshold = 0.1;
+            bloomPass.strength = 1.2; // Soft spiritual glow
+            bloomPass.radius = 0.8;
+
+            const outputPass = new OutputPass();
+
+            composer = new EffectComposer(renderer);
+            composer.addPass(renderScene);
+            composer.addPass(bloomPass);
+            composer.addPass(outputPass);
+
+            // Environment
+            createGround();
+            createFireflies();
+            setupPlants();
+            createLighting();
+
+            // Event Listeners
+            window.addEventListener('resize', onResize);
+            window.addEventListener('mousemove', onMouseMove);
+            window.addEventListener('mousedown', onMouseDown);
+            window.addEventListener('mouseup', onMouseUp);
+
+            // UI Button Listeners
+            document.getElementById('close-x').addEventListener('click', closePanel);
+            document.getElementById('return-btn').addEventListener('click', closePanel);
+
+            animate();
+        }
+
+        // --- ENVIRONMENT ---
+
+        function createGround() {
+            // Procedural Terrain using displacement
+            const geometry = new THREE.PlaneGeometry(100, 100, 128, 128);
+
+            // Create a noisy texture for the ground programmatically
+            const canvas = document.createElement('canvas');
+            canvas.width = 128; canvas.height = 128;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#000'; ctx.fillRect(0,0,128,128);
+            // Simple noise simulation
+            for(let i=0; i<500; i++) {
+                const x = Math.random()*128; const y = Math.random()*128;
+                const r = Math.random()*10;
+                ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2);
+                ctx.fillStyle = `rgba(255,255,255, ${Math.random()*0.2})`; ctx.fill();
+            }
+            const texture = new THREE.CanvasTexture(canvas);
+
+            const material = new THREE.MeshStandardMaterial({
+                color: 0x0a1a10, // Dark Swamp Green
+                roughness: 0.8,
+                metalness: 0.2,
+                displacementMap: texture,
+                displacementScale: 1.5,
+                wireframe: false
+            });
+
+            const plane = new THREE.Mesh(geometry, material);
+            plane.rotation.x = -Math.PI / 2;
+            plane.position.y = -1;
+            scene.add(plane);
+        }
+
+        function createLighting() {
+            const ambient = new THREE.AmbientLight(0x112233, 1.5); // Blue moonlight base
+            scene.add(ambient);
+
+            const moon = new THREE.DirectionalLight(0xaaccff, 0.5);
+            moon.position.set(10, 20, 10);
+            scene.add(moon);
+        }
+
+        function createFireflies() {
+            const geometry = new THREE.BufferGeometry();
+            const count = 300;
+            const positions = new Float32Array(count * 3);
+            const phases = new Float32Array(count); // Random offset for blinking
+
+            for(let i=0; i<count*3; i+=3) {
+                positions[i] = (Math.random()-0.5) * 40;
+                positions[i+1] = Math.random() * 4;
+                positions[i+2] = (Math.random()-0.5) * 40;
+                phases[i/3] = Math.random() * Math.PI * 2;
+            }
+
+            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            geometry.setAttribute('phase', new THREE.BufferAttribute(phases, 1));
+
+            const material = new THREE.PointsMaterial({
+                color: 0xffffaa,
+                size: 0.08,
+                transparent: true,
+                opacity: 0.8,
+                blending: THREE.AdditiveBlending
+            });
+
+            fireflies = new THREE.Points(geometry, material);
+            scene.add(fireflies);
+        }
+
+        function setupPlants() {
+            plants.forEach(data => {
+                // Instead of realistic models, we create "Spirit Forms" - clusters of light
+                const group = new THREE.Group();
+                group.position.copy(data.position);
+                group.userData = { data: data, originalY: data.position.y };
+
+                // 1. The Core Aura (Glow)
+                const auraGeo = new THREE.SphereGeometry(0.8, 32, 32);
+                const auraMat = new THREE.MeshBasicMaterial({
+                    color: data.color,
+                    transparent: true,
+                    opacity: 0.1,
+                    wireframe: true
+                });
+                const aura = new THREE.Mesh(auraGeo, auraMat);
+
+                // 2. The Particles (The shape)
+                const particles = createPlantParticles(data.geometryType, data.color);
+
+                group.add(aura);
+                group.add(particles);
+
+                // Add point light specific to plant
+                const light = new THREE.PointLight(data.color, 1, 5);
+                group.add(light);
+
+                scene.add(group);
+                plantMeshes.push(group);
+            });
+        }
+
+        function createPlantParticles(type, color) {
+            // Procedurally create abstract shapes representing the plants
+            const count = 100;
+            const geo = new THREE.BufferGeometry();
+            const pos = [];
+
+            for(let i=0; i<count; i++) {
+                let x, y, z;
+
+                if (type === 'braid') { // Tall and thin
+                    x = (Math.random()-0.5) * 0.2;
+                    z = (Math.random()-0.5) * 0.2;
+                    y = Math.random() * 2;
+                } else if (type === 'bush') { // Round low
+                    const u = Math.random();
+                    const v = Math.random();
+                    const theta = 2 * Math.PI * u;
+                    const phi = Math.acos(2 * v - 1);
+                    const r = 0.8 * Math.cbrt(Math.random());
+                    x = r * Math.sin(phi) * Math.cos(theta);
+                    y = r * Math.sin(phi) * Math.sin(theta) + 0.5;
+                    z = r * Math.cos(phi);
+                } else { // Cone
+                    const r = (1 - Math.random()) * 0.5;
+                    const theta = Math.random() * Math.PI * 2;
+                    y = Math.random() * 2.5;
+                    x = r * Math.cos(theta) * (2.5-y)/2.5;
+                    z = r * Math.sin(theta) * (2.5-y)/2.5;
+                }
+                pos.push(x, y, z);
+            }
+
+            geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+            const mat = new THREE.PointsMaterial({
+                color: color,
+                size: 0.05,
+                blending: THREE.AdditiveBlending,
+                transparent: true,
+                opacity: 0.8
+            });
+            return new THREE.Points(geo, mat);
+        }
+
+        // --- INTERACTION LOGIC ---
+
+        function onMouseMove(event) {
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+            // Cursor follow
+            const cursor = document.getElementById('cursor');
+            cursor.style.left = event.clientX + 'px';
+            cursor.style.top = event.clientY + 'px';
+
+            checkIntersection();
+        }
+
+        function checkIntersection() {
+            if (activePlant) return; // Don't hover if viewing info
+
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObjects(plantMeshes, true);
+
+            const indicator = document.getElementById('gesture-indicator');
+            const cursor = document.getElementById('cursor');
+
+            if (intersects.length > 0) {
+                // Find the parent group
+                let obj = intersects[0].object;
+                while(obj.parent && !obj.userData.data) { obj = obj.parent; }
+
+                if (obj.userData.data) {
+                    hoveredPlant = obj;
+                    document.body.style.cursor = 'none';
+                    indicator.style.opacity = '1';
+                    cursor.style.width = '40px';
+                    cursor.style.height = '40px';
+                }
+            } else {
+                hoveredPlant = null;
+                indicator.style.opacity = '0';
+                cursor.style.width = '8px';
+                cursor.style.height = '8px';
+                resetHold();
+            }
+        }
+
+        function onMouseDown(e) {
+            // Check if we are clicking on the UI to close it
+            if(activePlant) {
+                // If clicking outside the panel, close it
+                if(!e.target.closest('#info-panel')) {
+                    closePanel();
+                }
+                return;
+            }
+
+            if (hoveredPlant) {
+                isHolding = true;
+                const ring = document.getElementById('progress-ring');
+                ring.style.opacity = '1';
+            }
+        }
+
+        function onMouseUp() {
+            resetHold();
+        }
+
+        function resetHold() {
+            isHolding = false;
+            holdTimer = 0;
+            const ring = document.getElementById('progress-ring');
+            ring.style.opacity = '0';
+            ring.style.transform = 'rotate(-45deg)'; // Reset rotation
+        }
+
+        function activatePlant(plantGroup) {
+            activePlant = plantGroup;
+            const data = plantGroup.userData.data;
+
+            // Update Text
+            document.getElementById('p-michif').innerText = data.michif;
+            document.getElementById('p-eng').innerText = data.eng;
+            document.getElementById('p-desc').innerText = data.desc;
+
+            // Show Panel
+            document.getElementById('info-panel').classList.add('active');
+
+            // Hide Indicator
+            document.getElementById('gesture-indicator').style.opacity = '0';
+        }
+
+        function closePanel() {
+            // Logic to return to exploration mode
+            activePlant = null;
+            document.getElementById('info-panel').classList.remove('active');
+
+            // Reset cursor
+            const cursor = document.getElementById('cursor');
+            cursor.style.width = '8px';
+            cursor.style.height = '8px';
+        }
+
+        function onResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            composer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        // --- ANIMATION ---
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            const time = Date.now() * 0.001;
+
+            // 1. Camera Control
+            if (!activePlant) {
+                // Floating Exploration Mode
+                // Parallax based on mouse
+                const targetX = mouse.x * 2;
+                const targetY = mouse.y * 0.5 + 2;
+
+                // Smooth LERP to mouse position
+                camera.position.x += (targetX - camera.position.x) * 0.05;
+                camera.position.y += (targetY - camera.position.y) * 0.05;
+
+                // Smooth LERP Z back to original distance (5) if we were zoomed in
+                camera.position.z += (5 - camera.position.z) * 0.05;
+
+                camera.lookAt(0, 0, -10);
+            } else {
+                // Focused Mode
+                // Lerp to plant position + offset
+                const target = activePlant.position.clone().add(new THREE.Vector3(0, 0.5, 4));
+                camera.position.lerp(target, 0.05);
+                camera.lookAt(activePlant.position);
+            }
+
+            // 2. Firefly Animation
+            const positions = fireflies.geometry.attributes.position.array;
+            const phases = fireflies.geometry.attributes.phase.array;
+            for(let i=0; i<positions.length; i+=3) {
+                positions[i+1] += Math.sin(time + phases[i/3]) * 0.01; // Bob up/down
+            }
+            fireflies.geometry.attributes.position.needsUpdate = true;
+
+            // 3. Plant Animation (Breathing)
+            plantMeshes.forEach(mesh => {
+                mesh.children[1].rotation.y = time * 0.2; // Spin particles slowly
+                mesh.position.y = mesh.userData.originalY + Math.sin(time + mesh.position.x) * 0.1;
+
+                // If this is the hovered plant, spin faster
+                if(mesh === hoveredPlant && !activePlant) {
+                    mesh.children[0].rotation.z += 0.02;
+                    mesh.children[0].rotation.x += 0.02;
+                }
+            });
+
+            // 4. Hold Logic
+            if (isHolding && hoveredPlant && !activePlant) {
+                holdTimer += 0.015;
+
+                // Visual Ring Update
+                const ring = document.getElementById('progress-ring');
+                // Map 0-1 to rotation -45 to 315
+                const deg = -45 + (holdTimer * 360);
+                ring.style.transform = `rotate(${deg}deg)`;
+
+                if (holdTimer >= 1.0) {
+                    activatePlant(hoveredPlant);
+                    resetHold();
+                }
+            }
+
+            composer.render();
+        }
+
+        init();
+    </script>
+
+    <div class="experience-credit">
+        Designed by <span class="designer">Amarah Ishaque</span><br>
+        EDU596 Métis Foundational Knowledge
+    </div>
+</body>
+</html>
