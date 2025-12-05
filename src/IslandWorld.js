@@ -10,20 +10,23 @@ import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 // A clean, geometric, Interland-inspired environment
 // ============================================================
 
-// Beautiful gradient sky shader
+// Beautiful gradient sky shader - horizon glow only visible from side view
 const SkyShader = {
     uniforms: {
         topColor: { value: new THREE.Color(0x0a1628) },      // Deep blue top
         middleColor: { value: new THREE.Color(0x1e3a5f) },   // Mid blue
         bottomColor: { value: new THREE.Color(0xff7e47) },   // Warm orange horizon
+        deepColor: { value: new THREE.Color(0x050a12) },     // Very dark for "below"
         offset: { value: 20 },
         exponent: { value: 0.6 }
     },
     vertexShader: `
         varying vec3 vWorldPosition;
+        varying vec3 vPosition;
         void main() {
             vec4 worldPosition = modelMatrix * vec4(position, 1.0);
             vWorldPosition = worldPosition.xyz;
+            vPosition = position;
             gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
         }
     `,
@@ -31,19 +34,31 @@ const SkyShader = {
         uniform vec3 topColor;
         uniform vec3 middleColor;
         uniform vec3 bottomColor;
+        uniform vec3 deepColor;
         uniform float offset;
         uniform float exponent;
         varying vec3 vWorldPosition;
+        varying vec3 vPosition;
 
         void main() {
-            float h = normalize(vWorldPosition + offset).y;
+            // Use actual sphere position for more accurate gradient
+            float h = normalize(vPosition).y;
 
-            // Three-way gradient: bottom -> middle -> top
             vec3 color;
-            if (h < 0.3) {
-                color = mix(bottomColor, middleColor, h / 0.3);
-            } else {
-                color = mix(middleColor, topColor, (h - 0.3) / 0.7);
+
+            // Below horizon (looking down) - dark void
+            if (h < -0.1) {
+                color = mix(deepColor, middleColor, smoothstep(-0.5, -0.1, h));
+            }
+            // Horizon band - warm glow (narrow band)
+            else if (h < 0.15) {
+                float horizonFactor = smoothstep(-0.1, 0.0, h) * smoothstep(0.15, 0.05, h);
+                vec3 horizonColor = mix(middleColor, bottomColor, horizonFactor);
+                color = horizonColor;
+            }
+            // Above horizon - blue gradient
+            else {
+                color = mix(middleColor, topColor, smoothstep(0.15, 0.8, h));
             }
 
             gl_FragColor = vec4(color, 1.0);
@@ -604,7 +619,7 @@ export class IslandWorld {
 
             cloudGroup.position.set(
                 (Math.random() - 0.5) * 600,
-                50 + Math.random() * 80,
+                150 + Math.random() * 150,  // Much higher - won't interfere with clicks
                 (Math.random() - 0.5) * 600
             );
 
