@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Métis Prairie Environment</title>
+    <title>Métis Prairie - Floating Islands</title>
     <link rel="stylesheet" href="styles.css">
     <script type="importmap">
         {
@@ -19,13 +19,13 @@
 <body>
     <div id="ui-container">
         <h1>Métis Prairie</h1>
-        <p class="subtitle">Explore and visit the elders</p>
+        <p class="subtitle">Journey across the floating islands</p>
         <div class="controls">
             <p><strong>Navigation</strong></p>
             <p>Left Drag — Rotate View</p>
             <p>Right Drag — Pan</p>
             <p>Scroll — Zoom</p>
-            <p class="hint"><strong>Click on a cabin</strong> to visit an Elder<br><em>They have a math question for you!</em></p>
+            <p class="hint"><strong>Click on glowing stations</strong> to visit<br><em>Each island holds a different experience</em></p>
         </div>
         <div class="credits">
             <p class="credit-line">This experience was designed by</p>
@@ -36,19 +36,15 @@
     </div>
 
     <div id="minimap-container">
-        <p id="minimap-title"><strong>Map</strong></p>
-        <div id="minimap">
-            <div id="minimap-indicator"></div>
-        </div>
-        <p id="minimap-hint">Click to jump to area</p>
+        <p id="minimap-title"><strong>Islands</strong></p>
         <div id="cabin-buttons">
-            <button class="cabin-btn" data-cabin="1">1</button>
-            <button class="cabin-btn" data-cabin="2">2</button>
-            <button class="cabin-btn" data-cabin="3">3</button>
-            <button class="cabin-btn" data-cabin="4">4</button>
-            <button class="cabin-btn" data-cabin="5">5</button>
+            <button class="cabin-btn" data-cabin="1">Elder 1</button>
+            <button class="cabin-btn" data-cabin="2">Elder 2</button>
+            <button class="cabin-btn" data-cabin="3">Elder 3</button>
+            <button class="cabin-btn" data-cabin="4">Elder 4</button>
+            <button class="cabin-btn" data-cabin="5">Elder 5</button>
         </div>
-        <button id="overview-btn">Overview</button>
+        <button id="overview-btn">Center View</button>
         <div id="progress-tracker">
             <p id="progress-label">Journey Progress</p>
             <div id="progress-bar-container">
@@ -58,48 +54,48 @@
         </div>
     </div>
 
-    <!-- Welcome Modal (hidden by default, shown via JS if first visit) -->
+    <!-- Welcome Modal -->
     <div id="welcome-modal" class="hidden">
         <div id="welcome-content">
             <div id="welcome-header">
-                <div id="welcome-icon">🌾</div>
+                <div id="welcome-icon">✦</div>
                 <h1>Taanishi</h1>
-                <p class="welcome-subtitle">Welcome to the Métis Prairie</p>
+                <p class="welcome-subtitle">Welcome to the Floating Islands</p>
             </div>
 
             <div id="welcome-body">
                 <p>
-                    You stand on the traditional lands of the Métis people—a nation born from the meeting
-                    of Indigenous and European cultures, carrying forward unique traditions, language, and ways of knowing.
+                    You have arrived at the sacred islands of the Métis people—floating platforms
+                    that hold the knowledge and traditions of a nation born from the meeting of cultures.
                 </p>
 
                 <p>
-                    In this experience, you will walk across the prairie, visit Elders in their cabins,
-                    and discover the rich cultural heritage of the Métis. Each station holds teachings about
-                    language, craft, medicine, and the deep connections that bind all things together.
+                    Each island carries teachings about language, craft, medicine, and the deep connections
+                    that bind all things together. Visit the Elders, explore the gathering fires,
+                    and discover the rich heritage of the Métis.
                 </p>
 
                 <div id="welcome-instructions">
                     <h3>Your Journey</h3>
                     <ul>
-                        <li><strong>Visit 5 Elders</strong> in their cabins — each has wisdom to share and a math question to test your learning</li>
-                        <li><strong>Explore 6 Gathering Fires</strong> — discover interactive experiences about Métis culture</li>
-                        <li><strong>Find 6 Cultural Sites</strong> — medicine gardens, fishing spots, farms, and more</li>
+                        <li><strong>Visit 5 Elder Islands</strong> — each has wisdom to share and a question to test your learning</li>
+                        <li><strong>Explore 6 Experience Islands</strong> — discover interactive teachings about Métis culture</li>
+                        <li><strong>Find 6 Cultural Islands</strong> — medicine gardens, fishing, farming, and more</li>
                     </ul>
                 </div>
 
                 <div id="welcome-navigation">
                     <h3>How to Navigate</h3>
-                    <p><strong>Left Drag</strong> — Rotate your view &nbsp;|&nbsp; <strong>Right Drag</strong> — Pan across the land</p>
-                    <p><strong>Scroll</strong> — Zoom in and out &nbsp;|&nbsp; <strong>Click</strong> — Interact with stations</p>
+                    <p><strong>Left Drag</strong> — Rotate your view &nbsp;|&nbsp; <strong>Right Drag</strong> — Pan</p>
+                    <p><strong>Scroll</strong> — Zoom in and out &nbsp;|&nbsp; <strong>Click</strong> — Visit stations</p>
                 </div>
             </div>
 
             <button id="welcome-begin-btn">Begin Your Journey</button>
 
             <p id="welcome-footer">
-                <em>"The land remembers what the people teach it."</em><br>
-                — Métis Proverb
+                <em>"We are all related. What we do for ourselves, we do for all."</em><br>
+                — Métis Teaching
             </p>
 
             <div id="welcome-credit">
@@ -109,7 +105,7 @@
         </div>
     </div>
 
-    <script type="module" src="./src/main.js"></script>
+    <script type="module" src="./src/islandMain.js"></script>
 </body>
 
 </html>
